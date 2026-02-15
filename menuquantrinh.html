@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Full Chi Tiết - Black Gold Luxury</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-color: #0f0f0f;
+      --gold-color: #d4af37;
+      --gold-light: #fbeea9;
+      --gold-dark: #8a6c1e;
+      --text-white: #f0f0f0;
+    }
+
+    body {
+      background-color: #333;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 40px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* --- CẤU HÌNH TRANG A4 --- */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      /* Max height to enforce A4 size visual check */
+      max-height: 297mm;
+      overflow: hidden;
+      /* Hide overflow content visually until moved */
+      background-color: var(--bg-color);
+      color: var(--text-white);
+      position: relative;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+      margin-bottom: 30px;
+      padding: 20mm;
+      /* Increased padding ALL sides to respect border */
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #222;
+    }
+
+    /* Khung viền trang trí */
+    .page-border {
+      position: absolute;
+      top: 15mm;
+      /* Increased from 10mm */
+      left: 15mm;
+      /* Increased from 10mm */
+      right: 15mm;
+      /* Increased from 10mm */
+      bottom: 15mm;
+      /* Increased from 10mm */
+      border: 2px solid var(--gold-dark);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .page-border::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      bottom: 3px;
+      border: 1px solid var(--gold-color);
+    }
+
+    /* Họa tiết góc */
+    .corner-motif {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-image: radial-gradient(circle, var(--gold-color) 2px, transparent 2.5px);
+      background-size: 6px 6px;
+      z-index: 11;
+    }
+
+    .cm-tl {
+      top: 4mm;
+      left: 4mm;
+    }
+
+    .cm-tr {
+      top: 4mm;
+      right: 4mm;
+    }
+
+    .cm-bl {
+      bottom: 4mm;
+      left: 4mm;
+    }
+
+    .cm-br {
+      bottom: 4mm;
+      right: 4mm;
+    }
+
+    /* --- IN ẤN --- */
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      body {
+        background-color: #fff;
+        padding: 0;
+      }
+
+      .page {
+        box-shadow: none;
+        margin: 0;
+        /* Add visible border to define the frame as requested */
+        border: 1px solid #ddd;
+        page-break-after: always;
+        /* Reduce slightly to ensure fit within A4 printable area without bleed */
+        width: 209mm;
+        min-height: 296mm;
+        height: 296mm;
+        max-height: 296mm;
+        margin: 0 auto;
+        /* Center on page */
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        overflow: hidden;
+        /* Ensure box-sizing includes border in 210mm/297mm if needed, but usually 210mm is paper size */
+        box-sizing: border-box;
+      }
+
+      .no-print,
+      .drag-handle,
+      .drag-handle-row {
+        display: none !important;
+      }
+
+      /* --- GÁY SÁCH (FIXED LEFT BINDING) --- */
+      /* All Pages: Binding Left, content Right */
+      .page {
+        padding-left: 30mm !important;
+        /* Binding */
+        padding-right: 20mm !important;
+        /* Outer */
+      }
+
+      .page .page-border {
+        left: 25mm !important;
+        /* Binding side border (inset from 30mm padding) */
+        right: 15mm !important;
+        /* Outer side border */
+      }
+    }
+
+    /* --- TYPOGRAPHY --- */
+    .text-gold {
+      color: var(--gold-color);
+      background: linear-gradient(to right, #cfc09f, #ffecb3, #b38728);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 28px;
+      font-family: 'Playfair Display', serif;
+      color: var(--gold-color);
+      margin: 5px 0 15px 0;
+      /* Reduced margins */
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gold-dark);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 20;
+    }
+
+    /* --- MENU LAYOUT --- */
+    .menu-container {
+      z-index: 20;
+      flex-grow: 1;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      /* Change to space-between to fill height */
+      /* Start items from top, fill down */
+      gap: 5px;
+      /* Reduced gap */
+      /* Consistent gap between items */
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      /* Increased padding */
+      border-bottom: 1px dashed #333;
+      gap: 15px;
+      position: relative;
+      background: transparent;
+      flex-grow: 1;
+      /* Force items to expand to fill available space */
+      page-break-inside: avoid;
+      /* Prevent print break inside item */
+    }
+
+    /* Cột 1: Tên món (Trái) */
+    .col-main {
+      width: 25%;
+      padding-right: 5px;
+    }
+
+    .dish-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      line-height: 1.2;
+      margin-bottom: 2px;
+      /* Reduced margin */
+      display: block;
+    }
+
+    /* Cột 2: Danh sách chế biến & Giá (Giữa) */
+    .col-details {
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Dòng chế biến + ..... + Giá */
+    .detail-row {
+      display: flex;
+      align-items: flex-end;
+      font-size: 16px;
+      color: #ddd;
+      width: 100%;
+    }
+
+    .prep-name {
+      white-space: nowrap;
+    }
+
+    .dots-separator {
+      flex-grow: 1;
+      border-bottom: 1px dotted #777;
+      margin: 0 5px 5px 5px;
+      min-width: 20px;
+    }
+
+    .price-tag {
+      font-weight: bold;
+      color: var(--gold-color);
+      white-space: nowrap;
+    }
+
+    /* Cột 3: Hình ảnh (Phải - Rất to) */
+    .col-image {
+      width: 30%;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .img-placeholder {
+      width: 140px;
+      /* Increased size */
+      height: 140px;
+      /* Increased size */
+      border: 2px solid var(--gold-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      background-color: #222;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .img-placeholder:hover {
+      border-color: #fff;
+    }
+
+    .img-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    /* --- DYNAMIC EDITING CONTROLS --- */
+    .controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #d4af37;
+      color: #000;
+      padding: 10px 20px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      border: none;
+    }
+
+    .btn:hover {
+      background: #fff;
+    }
+
+    [contenteditable]:focus {
+      outline: none;
+      border-bottom: 1px solid var(--gold-color);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-add-item {
+      width: 100%;
+      text-align: center;
+      padding: 12px;
+      border: 2px dashed #444;
+      color: #666;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .btn-add-item:hover {
+      background: #222;
+      color: #d4af37;
+      border-color: #d4af37;
+    }
+
+    .btn-add-line {
+      font-size: 13px;
+      color: #4caf50;
+      cursor: pointer;
+      margin-top: 4px;
+      text-align: right;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .btn-add-line:hover {
+      color: #81c784;
+      text-decoration: underline;
+    }
+
+    .btn-delete {
+      color: #ff4444;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      margin-left: 8px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .btn-delete:hover {
+      opacity: 1;
+    }
+
+    /* Hover to show delete buttons */
+    .menu-item:hover .btn-delete-item {
+      opacity: 1;
+    }
+
+    .detail-row:hover .btn-delete-row {
+      opacity: 1;
+    }
+
+    .btn-delete-item {
+      position: absolute;
+      right: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #333;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ff4444;
+      opacity: 0;
+    }
+
+    .btn-delete-row {
+      margin-left: 5px;
+      opacity: 0;
+    }
+
+    .btn-move-down {
+      position: absolute;
+      right: -25px;
+      top: 65%;
+      /* Below delete button */
+      transform: translateY(-50%);
+      background: #333;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #17a2b8;
+      color: #17a2b8;
+      cursor: pointer;
+      opacity: 0;
+      font-size: 14px;
+    }
+
+    .btn-move-down:hover {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .menu-item:hover .btn-move-down {
+      opacity: 1;
+    }
+
+    /* --- DRAG & DROP --- */
+    .drag-handle {
+      cursor: grab;
+      padding: 0 10px;
+      color: #555;
+      font-size: 20px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .menu-item.dragging {
+      opacity: 0.5;
+      border: 1px dashed #fff;
+      background: #222;
+    }
+
+    /* Drag Handle for Rows */
+    .drag-handle-row {
+      cursor: ns-resize;
+      color: #777;
+      margin-right: 5px;
+      font-size: 14px;
+      user-select: none;
+      padding: 0 4px;
+    }
+
+    .detail-row.dragging {
+      opacity: 0.5;
+      background: #333;
+    }
+  </style>
+
+</head>
+
+<body><input type="file" id="fileInput" accept="image/*">
+  <div class="controls no-print"><button class="btn" onclick="window.print()">🖨️ In Menu / Lưu PDF</button><button
+      class="btn" style="background: #17a2b8; color: white;" onclick="saveMenuData()">💾 Lưu Dữ Liệu</button><button
+      class="btn" style="background: #28a745; color: white;" onclick="addPage()">+Thêm Trang Mới</button><button
+      class="btn" style="background: #dc3545; color: white;" onclick="resetData()">↻ Reset Dữ Liệu</button></div>
+  < !--=================MENU CONTENT WRAPPER (For Save/Load)=================-->
+    <div id="menu-content">
+      < !--=================TRANG 1: BÌA=================-->
+        <div class="page flex flex-col justify-center items-center text-center" style="border: none; box-shadow: none;">
+          <div class="flex-grow flex flex-col items-center justify-center"><img src="./logodatachnen.png"
+              style="max-width: 80%; max-height: 40vh; object-fit: contain;">
+            <h2 class="text-4xl text-gold font-serif italic font-bold mt-8"
+              style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);" contenteditable="true">"Không tên nhưng có tuổi !
+              Tuổi...."
+            </h2>
+          </div>
+        </div>
+        < !--=================TRANG 2: VÍ DỤ=================-->
+          <div class="page">
+            <div class="page-border"></div>
+            <div class="menu-container">
+              <h2 class="section-title" contenteditable="true">HẢI SẢN TƯƠI SỐNG</h2>
+              < !-- Example Item -->
+                <div class="menu-item" draggable="true">
+                  <div class="drag-handle">⋮⋮</div>
+                  <div class="col-main"><span class="dish-name" contenteditable="true">TÔM HÙM</span></div>
+                  <div class="col-details">
+                    <div class="detail-row"><span class="prep-name" contenteditable="true">Hấp bia</span><span
+                        class="dots-separator"></span><span class="price-tag" contenteditable="true">950.000đ</span>
+                    </div>
+                    <div class="detail-row"><span class="prep-name" contenteditable="true">Nướng phô mai</span><span
+                        class="dots-separator"></span><span class="price-tag" contenteditable="true">980.000đ</span>
+                    </div>
+                  </div>
+                  <div class="col-image">
+                    <div class="img-placeholder" onclick="triggerUpload(this.querySelector('img'))"><img
+                        src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400"></div>
+                  </div>
+                </div>
+            </div>
+          </div>
+    </div>
+    < !--=================END MENU CONTENT=================-->
+      < !-- Script Upload & Dynamic Editing -->
+        <script>
+          /* --- IMAGE UPLOAD LOGIC (With Compression) --- */
+          let currentImgElement = null;
+          const fileInput = document.getElementById('fileInput');
+
+          function triggerUpload(imgEl) {
+            currentImgElement = imgEl;
+            fileInput.click();
+          }
+
+          // Helper: Compress Image
+          function compressImage(file, maxWidth, quality, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = function (event) {
+              const img = new Image();
+              img.src = event.target.result;
+
+              img.onload = function () {
+                let width = img.width;
+                let height = img.height;
+
+                // Resize if too big
+                if (width > maxWidth) {
+                  height = Math.round(height * (maxWidth / width));
+                  width = maxWidth;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                callback(dataUrl);
+              }
+            }
+          }
+
+          fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+
+              // Compress: Max width 800px, Quality 0.7
+              compressImage(this.files[0], 800, 0.7, function (compressedDataUrl) {
+                if (currentImgElement) {
+                  currentImgElement.src = compressedDataUrl;
+                  // saveMenuData(); // Auto-save disabled for manual mode
+                  triggerBackup(); // Trigger safety backup
+                }
+              });
+            }
+
+            this.value = '';
+          });
+
+          /* --- DYNAMIC EDITING LOGIC --- */
+          function createEl(html) {
+            const template = document.createElement('template');
+            template.innerHTML = html.trim();
+            return template.content.firstChild;
+          }
+
+          /* Initialize UI Buttons & Drag Events */
+          function initUI() {
+
+            // Add "Add Item" (Thêm Món) to every page
+            document.querySelectorAll('.menu-container').forEach(container => {
+              if (!container.querySelector('.btn-add-item')) {
+                const btn = createEl(`<div class="btn-add-item no-print" onclick="addItem(this)" >+ Thêm Món Mới</div>`);
+                container.appendChild(btn);
+              }
+
+              // Drag Over Drop for Container
+              container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const draggable = document.querySelector('.dragging');
+
+                if (draggable) {
+                  if (afterElement == null) {
+                    // Append before button add item if exists
+                    const btnAdd = container.querySelector('.btn-add-item');
+                    container.insertBefore(draggable, btnAdd);
+                  }
+
+                  else {
+                    container.insertBefore(draggable, afterElement);
+                  }
+                }
+              });
+
+              // Handle Drop (check overflow)
+              container.addEventListener('drop', e => {
+                e.preventDefault();
+                checkOverflow(container.closest('.page'));
+                triggerBackup();
+              });
+            });
+
+            // Add "Add Line" (Thêm Dòng) to every item details col
+            // Add "Add Line" (Thêm Dòng) to every item details col
+            document.querySelectorAll('.col-details').forEach(col => {
+              if (!col.querySelector('.btn-add-line')) {
+                const btn = createEl(`<div class="btn-add-line no-print" onclick="addDetail(this)">+ Thêm dòng</div>`);
+                col.appendChild(btn);
+              }
+
+              // Drag Over for Details (Idempotent check)
+              if (!col.classList.contains('js-drag-init')) {
+                col.classList.add('js-drag-init');
+
+                col.addEventListener('dragover', e => {
+                  e.preventDefault();
+                  e.stopPropagation(); // Critical both for drop and over
+                  const afterElement = getDragAfterElementRow(col, e.clientY);
+                  const draggable = document.querySelector('.detail-row.dragging');
+                  if (draggable) {
+                    if (afterElement == null) {
+                      const btnAdd = col.querySelector('.btn-add-line');
+                      col.insertBefore(draggable, btnAdd);
+                    } else {
+                      col.insertBefore(draggable, afterElement);
+                    }
+                  }
+                });
+
+                col.addEventListener('drop', e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  checkOverflow(col.closest('.page'));
+                  triggerBackup();
+                });
+              }
+            });
+
+            // Add Delete buttons & Drag Handles to Items
+            document.querySelectorAll('.menu-item').forEach(item => {
+
+              // Add Delete Button
+              if (!item.querySelector('.btn-delete-item')) {
+                const btn = createEl(`<div class="btn-delete btn-delete-item no-print" onclick="deleteNode(this.parentElement)" title="Xóa món này" >×</div>`);
+                item.appendChild(btn);
+              }
+
+              // Add Move Down Button
+              if (!item.querySelector('.btn-move-down')) {
+                const btn = createEl(`<div class="btn-move-down no-print" onclick="moveToNextPage(this.parentElement)" title="Chuyển xuống trang sau">⇩</div>`);
+                item.appendChild(btn);
+              }
+
+              // Add Drag Handle
+              if (!item.querySelector('.drag-handle')) {
+                const handle = createEl(`<div class="drag-handle" >⋮⋮</div>`);
+                item.prepend(handle);
+              }
+
+              // Enable Drag
+              item.setAttribute('draggable', 'true');
+
+              // Drag Events
+              item.addEventListener('dragstart', () => {
+                item.classList.add('dragging');
+              });
+
+              item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                // Check overflow for Source and Target pages is tricky to determine here exactly
+                // But 'drop' event on container handles target.
+                // Let's check ALL pages to be safe or just closest. 
+                document.querySelectorAll('.page').forEach(p => checkOverflow(p));
+                triggerBackup();
+              });
+            });
+
+            document.querySelectorAll('.detail-row').forEach(row => {
+              if (!row.querySelector('.btn-delete-row')) {
+                const btn = createEl(`<span class="btn-delete btn-delete-row no-print" onclick="deleteNode(this.parentElement)" title="Xóa dòng này">×</span>`);
+                row.appendChild(btn);
+              }
+
+              // Add Drag Handle Row
+              if (!row.querySelector('.drag-handle-row')) {
+                const handle = createEl(`<span class="drag-handle-row">::</span>`);
+                row.prepend(handle);
+              }
+
+              // Enable Drag Row
+              row.setAttribute('draggable', 'true');
+
+              if (!row.classList.contains('js-drag-init')) {
+                row.classList.add('js-drag-init');
+
+                row.addEventListener('dragstart', e => {
+                  e.stopPropagation(); // Stop parent Item from dragging
+                  row.classList.add('dragging');
+                });
+
+                row.addEventListener('dragend', e => {
+                  e.stopPropagation();
+                  row.classList.remove('dragging');
+                  checkOverflow(row.closest('.page'));
+                  triggerBackup();
+                });
+              }
+            });
+          }
+
+          // Helper to find position
+          function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.menu-item:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+              const box = child.getBoundingClientRect();
+              const offset = y - box.top - box.height / 2;
+
+              if (offset < 0 && offset > closest.offset) {
+                return {
+                  offset: offset, element: child
+                }
+
+                  ;
+              }
+
+              else {
+                return closest;
+              }
+            }
+
+              , {
+                offset: Number.NEGATIVE_INFINITY
+              }).element;
+          }
+
+          function getDragAfterElementRow(container, y) {
+            const draggableElements = [...container.querySelectorAll('.detail-row:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+              const box = child.getBoundingClientRect();
+              const offset = y - box.top - box.height / 2;
+              if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+              } else {
+                return closest;
+              }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+          }
+
+          function addPage(afterNode = null, isEmpty = false) {
+            const defaultItem = isEmpty ? '' : `<div class="menu-item" draggable="true" > <div class="drag-handle" >⋮⋮</div> <div class="col-main" ><span class="dish-name" contenteditable="true" >TÊN MÓN</span></div> <div class="col-details" > <div class="detail-row" draggable="true"><span class="drag-handle-row">::</span><span class="prep-name" contenteditable="true" >Cách chế biến...</span><span class="dots-separator" ></span><span class="price-tag" contenteditable="true" >00.000đ</span></div> </div> <div class="col-image" ><div class="img-placeholder" onclick="triggerUpload(this.querySelector('img'))" ><img src="https://placehold.co/400x400/333/999?text=Anh+Mon" ></div></div> </div>`;
+
+            const newPageStr = ` <div class="page"><div class="page-border"></div><div class="menu-container"><h2 class="section-title" contenteditable="true">TIÊU ĐỀ TRANG MỚI</h2>${defaultItem}</div></div>`;
+            const newPage = createEl(newPageStr);
+
+            if (afterNode) {
+              afterNode.parentNode.insertBefore(newPage, afterNode.nextSibling);
+            }
+
+            else {
+              // Insert inside #menu-content
+              document.getElementById('menu-content').appendChild(newPage);
+            }
+
+            initUI();
+
+            if (!afterNode && !isEmpty) newPage.scrollIntoView({
+              behavior: 'smooth'
+            });
+            // saveMenuData(); // Auto-save disabled
+            triggerBackup(); // Trigger safety backup
+            return newPage;
+          }
+
+          function addItem(btn) {
+            const newItemStr = ` <div class="menu-item" draggable="true"><div class="drag-handle">⋮⋮</div><div class="col-main"><span class="dish-name" contenteditable="true">TÊN MÓN MỚI</span></div><div class="col-details"><div class="detail-row" draggable="true"><span class="drag-handle-row">::</span><span class="prep-name" contenteditable="true">Mô tả chế biến...</span><span class="dots-separator"></span><span class="price-tag" contenteditable="true">00.000đ</span></div></div><div class="col-image"><div class="img-placeholder" onclick="triggerUpload(this.querySelector('img'))"><img src="https://placehold.co/400x400/333/999?text=Click+Them+Anh"></div></div></div>`;
+            const newItem = createEl(newItemStr);
+            btn.parentElement.insertBefore(newItem, btn);
+            initUI();
+            // Check overflow for this page
+            checkOverflow(btn.closest('.page'));
+            // saveMenuData(); // Auto-save disabled
+            triggerBackup(); // Trigger safety backup
+          }
+
+          function addDetail(btn) {
+            const newRowStr = `<div class="detail-row" draggable="true"><span class="drag-handle-row">::</span><span class="prep-name" contenteditable="true">Chế biến thêm...</span><span class="dots-separator"></span><span class="price-tag" contenteditable="true">00.000đ</span></div>`;
+            const newRow = createEl(newRowStr);
+            btn.parentElement.insertBefore(newRow, btn);
+            initUI();
+            // Check overflow for this page
+            checkOverflow(btn.closest('.page'));
+            // saveMenuData(); // Auto-save disabled
+            triggerBackup(); // Trigger safety backup
+          }
+
+          // Delete Node
+          function deleteNode(node) {
+            if (confirm('Bạn có chắc muốn xóa không?')) {
+              node.remove();
+              // saveMenuData(); // Auto-save disabled
+              triggerBackup(); // Trigger safety backup
+            }
+          }
+
+          /* --- DATA PERSISTENCE (LƯU TRỮ DỮ LIỆU) --- */
+          const STORAGE_KEY = 'menu_data_v1';
+          const BACKUP_KEY = 'menu_backup_temp';
+
+          // 1. Manual Save (Chính)
+          function saveMenuData() {
+            const content = document.getElementById('menu-content').innerHTML;
+
+            try {
+              localStorage.setItem(STORAGE_KEY, content);
+              console.log('Đã lưu dữ liệu thủ công.');
+              alert('Đã lưu dữ liệu thành công!');
+            }
+
+            catch (e) {
+              console.error('Lỗi khi lưu:', e);
+              alert('Cảnh báo: Không thể lưu dữ liệu (Dung lượng ảnh quá lớn).');
+            }
+          }
+
+          // 2. Safety Backup (Tự động chạy ngầm)
+          function saveBackup() {
+            const content = document.getElementById('menu-content').innerHTML;
+
+            const data = {
+              timestamp: Date.now(),
+              content: content
+            }
+
+              ;
+
+            try {
+              localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+              console.log('Đã sao lưu tự động (Backup).');
+            }
+
+            catch (e) {
+              console.warn('Không thể sao lưu backup:', e);
+            }
+          }
+
+          // 3. Check Backup on Load
+          function checkAndRestoreBackup() {
+            const backupRaw = localStorage.getItem(BACKUP_KEY);
+            if (!backupRaw) return false;
+
+            try {
+              const backup = JSON.parse(backupRaw);
+              const age = Date.now() - backup.timestamp;
+              const minutes = Math.floor(age / 60000);
+
+              if (minutes <= 15) {
+                if (confirm(`Tìm thấy bản nháp tự động từ $ {
+                minutes
+              }
+
+              phút trước. Bạn có muốn phục hồi không? (Nhấn OK để phục hồi, Cancel để bỏ qua)`)) {
+                  document.getElementById('menu-content').innerHTML = backup.content;
+                  initUI();
+                  console.log('Đã phục hồi từ backup.');
+                  return true; // Restored
+                }
+              }
+
+              else {
+                // Expired -> Cleanup
+                localStorage.removeItem(BACKUP_KEY);
+              }
+            }
+
+            catch (e) {
+              console.error('Lỗi đọc backup:', e);
+            }
+
+            return false; // Not restored
+          }
+
+          function loadMenuData() {
+            // First check backup
+            if (checkAndRestoreBackup()) return;
+
+            // If no backup restored, load main manual save
+            const savedContent = localStorage.getItem(STORAGE_KEY);
+
+            if (savedContent) {
+              document.getElementById('menu-content').innerHTML = savedContent;
+              console.log('Đã khôi phục dữ liệu đã lưu.');
+              initUI();
+            }
+          }
+
+          function resetData() {
+            if (confirm('CẢNH BÁO: Hành động này sẽ xóa toàn bộ dữ liệu bạn đã nhập và quay về mặc định. Bạn có chắc không?')) {
+              localStorage.removeItem(STORAGE_KEY);
+              location.reload();
+            }
+          }
+
+          /* --- AUTO SAVE TRIGGERS (BACKUP ONLY) --- */
+          let backupTimeout;
+
+          function triggerBackup() {
+            clearTimeout(backupTimeout);
+            backupTimeout = setTimeout(saveBackup, 2000); // Debounce 2s
+          }
+
+          // 1. Text changes
+          document.addEventListener('input', triggerBackup);
+
+          // 2. Structural changes (Hook into functions)
+          // We update the functions to call triggerBackup()
+          // (See below changes to addPage, addItem, etc.) -- Actually better to use MutationObserver but hooking functions is safer for specific actions.
+          // Let's just add MutationObserver for simplicity to catch ALL content changes?
+          // No, MutationObserver might be too heavy with specific DOM manipulations.
+          // Let's stick to hooking: input event covers text. We need to hook image and add/delete.
+
+          // Initialize on load
+          window.addEventListener('scroll', () => { });
+
+          window.addEventListener('DOMContentLoaded', () => {
+            loadMenuData(); // Try to load first
+            initUI(); // Initialize UI (btns)
+          });
+        </script>
+</body>
+
+</html>
