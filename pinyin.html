@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Hỗ Trợ Gáo Viên Tiếng Trung - Tạo Pinyin & PDF</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Pinyin Pro library for Chinese to Pinyin conversion -->
+    <script src="https://unpkg.com/pinyin-pro"></script>
+    
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Chinese Font specifically for the preview area */
+        .chinese-text {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        /* Styling the ruby tags (Hanzi + Pinyin) */
+        ruby {
+            ruby-align: center;
+            ruby-position: over; /* Đảm bảo pinyin luôn nằm phía trên chữ Hán */
+        }
+        
+        rt {
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            transition: background-color 0.2s;
+            cursor: text;
+        }
+
+        /* Hover effect for editable pinyin */
+        rt:hover {
+            background-color: #fef08a; /* yellow-200 */
+            border-radius: 2px;
+        }
+
+        rt:focus {
+            background-color: #fde047; /* yellow-300 */
+            outline: none;
+            border-radius: 2px;
+            box-shadow: 0 0 0 2px #eab308; /* yellow-500 */
+        }
+
+        /* A4 Paper simulation */
+        .a4-paper {
+            background-color: white;
+            min-height: 297mm; /* Standard A4 height */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .a4-paper {
+                box-shadow: none;
+                margin: 0;
+                min-height: auto;
+            }
+        }
+        
+        /* Custom Scrollbar for text area */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header id="main-header" class="bg-white shadow-sm border-b px-6 py-4 flex items-center justify-between z-10 shrink-0 transition-all duration-300">
+        <div class="flex items-center gap-2 text-red-600">
+            <i data-lucide="book-a" class="w-8 h-8"></i>
+            <h1 class="text-xl font-bold">Giáo Án Pinyin Pro</h1>
+        </div>
+        <div class="text-sm text-gray-500 hidden sm:block">
+            Gõ chữ Hán ➔ Tự động Pinyin ➔ Chỉnh sửa ➔ Xuất PDF
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        <!-- Left Panel: Input & Controls -->
+        <div id="left-panel" class="w-full lg:w-1/3 bg-white flex flex-col border-r shadow-sm z-10 transition-all duration-300">
+            <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                <h2 class="font-semibold text-gray-700 flex items-center gap-2">
+                    <i data-lucide="keyboard" class="w-5 h-5"></i> Nhập chữ Hán
+                </h2>
+                <button onclick="clearText()" class="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Xóa hết
+                </button>
+            </div>
+            
+            <textarea id="hanzi-input" class="flex-1 w-full p-4 resize-none outline-none text-lg leading-relaxed" placeholder="Nhập hoặc dán văn bản tiếng Trung vào đây...
+Ví dụ: 
+你好，欢迎来到学习中文的网站！
+Hệ thống sẽ tự động tạo Pinyin ở bên phải."></textarea>
+            
+            <!-- Controls -->
+            <div class="p-4 border-t bg-gray-50 shrink-0 space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <label class="font-medium text-gray-700">Cỡ chữ Hán (Hanzi)</label>
+                        <span id="hanzi-size-val">28px</span>
+                    </div>
+                    <input type="range" id="hanzi-size" min="16" max="64" value="28" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <label class="font-medium text-gray-700">Cỡ phiên âm (Pinyin)</label>
+                        <span id="pinyin-size-val">14px</span>
+                    </div>
+                    <input type="range" id="pinyin-size" min="10" max="32" value="14" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="pt-2 flex flex-col gap-3">
+                    <button onclick="exportToPDF()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="file-down" class="w-5 h-5"></i>
+                        Xuất file PDF
+                    </button>
+                    <button onclick="togglePresentationMode()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="monitor-play" class="w-5 h-5"></i>
+                        Chế độ chép bài
+                    </button>
+                    <p class="text-xs text-gray-500 text-center mt-1">Mẹo: Click trực tiếp vào Pinyin ở bản xem trước để sửa nếu cần.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Preview (A4 View) -->
+        <div id="right-panel" class="w-full lg:w-2/3 bg-gray-200 overflow-y-auto p-4 sm:p-8 flex justify-center items-start transition-all duration-300">
+            
+            <!-- The Paper Container -->
+            <div id="pdf-container" class="a4-paper w-full max-w-[210mm] p-[15mm] sm:p-[20mm] bg-white text-gray-900 chinese-text leading-loose break-words">
+                
+                <div id="preview-content" class="text-left flex flex-wrap content-start">
+                    <!-- Dynamic content will be injected here -->
+                    <div class="w-full h-full flex items-center justify-center text-gray-400 italic">
+                        Bản xem trước tài liệu sẽ hiển thị ở đây
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Overlay Loading -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="flex flex-col items-center">
+            <i data-lucide="loader-2" class="w-10 h-10 text-red-600 animate-spin mb-3"></i>
+            <p class="text-lg font-medium text-gray-800">Đang tạo file PDF...</p>
+        </div>
+    </div>
+
+    <!-- Nút thoát chế độ trình chiếu (ẩn mặc định) -->
+    <button id="exit-presentation-btn" onclick="togglePresentationMode()" class="fixed top-6 right-6 bg-gray-800/80 hover:bg-gray-900 text-white p-4 rounded-full shadow-2xl hidden z-50 transition-all transform hover:scale-110 items-center gap-2 backdrop-blur-sm">
+        <i data-lucide="x" class="w-6 h-6"></i>
+        <span class="font-semibold pr-2">Thoát trình chiếu</span>
+    </button>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const inputArea = document.getElementById('hanzi-input');
+        const previewContent = document.getElementById('preview-content');
+        const hanziSizeInput = document.getElementById('hanzi-size');
+        const pinyinSizeInput = document.getElementById('pinyin-size');
+        const hanziSizeVal = document.getElementById('hanzi-size-val');
+        const pinyinSizeVal = document.getElementById('pinyin-size-val');
+
+        // State Variables
+        let currentHanziSize = hanziSizeInput.value;
+        let currentPinyinSize = pinyinSizeInput.value;
+
+        // Apply initial styles
+        updateStyles();
+
+        // Event Listeners for Input and Settings
+        inputArea.addEventListener('input', debounce(processText, 300));
+        
+        hanziSizeInput.addEventListener('input', (e) => {
+            currentHanziSize = e.target.value;
+            hanziSizeVal.innerText = `${currentHanziSize}px`;
+            updateStyles();
+        });
+
+        pinyinSizeInput.addEventListener('input', (e) => {
+            currentPinyinSize = e.target.value;
+            pinyinSizeVal.innerText = `${currentPinyinSize}px`;
+            updateStyles();
+        });
+
+        // Prevent Enter key from creating a new line inside editable RT tag
+        previewContent.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() === 'rt' && e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur(); // Remove focus
+            }
+        });
+
+        // Function to update dynamic CSS sizes
+        function updateStyles() {
+            previewContent.style.fontSize = `${currentHanziSize}px`;
+            previewContent.style.lineHeight = '2.2'; // Gives space for pinyin
+            
+            // Update all RT tags if they exist
+            const rtElements = previewContent.getElementsByTagName('rt');
+            for(let rt of rtElements) {
+                rt.style.fontSize = `${currentPinyinSize}px`;
+                rt.style.lineHeight = '1';
+                rt.style.marginBottom = '2px';
+            }
+        }
+
+        // Debounce helper to prevent excessive rendering while typing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function clearText() {
+            inputArea.value = '';
+            processText();
+        }
+
+        // Main conversion logic
+        function processText() {
+            const text = inputArea.value;
+            
+            if (!text.trim()) {
+                previewContent.innerHTML = `<div class="w-full mt-20 flex items-center justify-center text-gray-400 italic">Bản xem trước tài liệu sẽ hiển thị ở đây</div>`;
+                return;
+            }
+
+            // Using pinyin-pro library
+            // We get an array of pinyin strings. The array length matches the input string length exactly.
+            // This is perfect because we can map character by character and retain correct polyphone pronunciation from context.
+            const { pinyin } = pinyinPro;
+            const pinyinArray = pinyin(text, { type: 'array' });
+
+            let htmlString = '';
+
+            // Chinese character regex
+            const zhRegex = /[\u4e00-\u9fa5]/;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const py = pinyinArray[i];
+
+                if (zhRegex.test(char)) {
+                    // It's a Chinese character: render inside <ruby> with <rt> for pinyin
+                    // contenteditable="true" makes the pinyin directly editable by the teacher
+                    htmlString += `
+                        <ruby class="inline-block mx-[2px]">
+                            ${char}
+                            <rt contenteditable="true" spellcheck="false" 
+                                style="font-size: ${currentPinyinSize}px; line-height: 1; margin-bottom: 2px;"
+                                class="block text-gray-600 text-center">${py}</rt>
+                        </ruby>`;
+                } else if (char === '\n') {
+                    // Handle new lines
+                    // Using a full width div to force line break in flex container
+                    htmlString += `<div class="w-full h-0"></div>`;
+                } else if (char === ' ') {
+                    // Handle spaces
+                    htmlString += `<span class="inline-block w-[0.5em]"></span>`;
+                } else {
+                    // Punctuation, numbers, or english letters
+                    htmlString += `<span class="inline-block mx-[1px] opacity-80">${char}</span>`;
+                }
+            }
+
+            previewContent.innerHTML = htmlString;
+        }
+
+        // PDF Generation
+        function exportToPDF() {
+            // Check if there is content
+            if (!inputArea.value.trim()) {
+                alert("Vui lòng nhập nội dung trước khi xuất PDF.");
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            const element = document.getElementById('pdf-container');
+            
+            // Briefly remove box shadow and extra padding limits for perfect printing
+            element.classList.remove('a4-paper', 'max-w-[210mm]');
+            element.style.width = '210mm'; // Lock to A4 width
+
+            const opt = {
+                margin:       [15, 15, 15, 15], // Top, Left, Bottom, Right margin in mm
+                filename:     'tai_lieu_tieng_trung.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true,
+                    letterRendering: true,
+                    scrollY: 0
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generate PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore styling after PDF is generated
+                element.classList.add('a4-paper', 'max-w-[210mm]');
+                element.style.width = '';
+                document.getElementById('loading-overlay').style.display = 'none';
+            }).catch(err => {
+                console.error("PDF Export Error: ", err);
+                document.getElementById('loading-overlay').style.display = 'none';
+                alert("Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại.");
+            });
+        }
+
+        // Initialize with a demo text for the user to see how it works instantly
+        window.onload = () => {
+            processText();
+        };
+
+        // --- CHẾ ĐỘ TRÌNH CHIẾU / CHÉP BÀI ---
+        let isPresentationMode = false;
+        function togglePresentationMode() {
+            isPresentationMode = !isPresentationMode;
+            
+            const header = document.getElementById('main-header');
+            const leftPanel = document.getElementById('left-panel');
+            const rightPanel = document.getElementById('right-panel');
+            const pdfContainer = document.getElementById('pdf-container');
+            const exitBtn = document.getElementById('exit-presentation-btn');
+
+            if (isPresentationMode) {
+                // Ẩn thanh công cụ và header
+                header.classList.add('hidden');
+                leftPanel.classList.add('hidden');
+                
+                // Mở rộng phần xem trước
+                rightPanel.classList.remove('lg:w-2/3', 'bg-gray-200', 'p-4', 'sm:p-8');
+                rightPanel.classList.add('w-full', 'bg-white', 'p-8', 'sm:p-12');
+                
+                // Gỡ bỏ giới hạn khung A4 để tràn màn hình, chữ to rõ hơn
+                pdfContainer.classList.remove('a4-paper', 'max-w-[210mm]', 'p-[15mm]', 'sm:p-[20mm]');
+                pdfContainer.classList.add('max-w-7xl', 'mx-auto', 'w-full');
+
+                // Hiển thị nút thoát
+                exitBtn.classList.remove('hidden');
+                exitBtn.classList.add('flex');
+
+                // Yêu cầu full màn hình trình duyệt (nếu hỗ trợ)
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err => console.log(err));
+                }
+            } else {
+                // Khôi phục giao diện ban đầu
+                header.classList.remove('hidden');
+                leftPanel.classList.remove('hidden');
+                
+                rightPanel.classList.add('lg:w-2/3', 'bg-gray-200', 'p-4', 'sm:p-8');
+                rightPanel.classList.remove('w-full', 'bg-white', 'p-8', 'sm:p-12');
+                
+                pdfContainer.classList.add('a4-paper', 'max-w-[210mm]', 'p-[15mm]', 'sm:p-[20mm]');
+                pdfContainer.classList.remove('max-w-7xl', 'mx-auto', 'w-full');
+
+                // Ẩn nút thoát
+                exitBtn.classList.add('hidden');
+                exitBtn.classList.remove('flex');
+
+                // Thoát full màn hình trình duyệt
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                }
+            }
+        }
+
+        // Lắng nghe phím ESC để thoát chế độ trình chiếu đồng bộ với trình duyệt
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isPresentationMode) {
+                togglePresentationMode();
+            }
+        });
+
+    </script>
+</body>
+</html>
