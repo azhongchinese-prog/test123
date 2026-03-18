@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề Kiểm Tra 30 Phút - HSK 1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+        .chinese-text {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 1.3rem;
+            line-height: 2.2rem;
+        }
+        ruby {
+            ruby-align: center;
+            margin: 0 1px;
+        }
+        rt {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .q-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .q-card.correct { border-color: #10b981; background-color: #f0fdf4; }
+        .q-card.wrong { border-color: #ef4444; background-color: #fef2f2; }
+        
+        .timer-fixed {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full text-center">
+            <div class="text-blue-600 mb-4">
+                <i class="fa-solid fa-graduation-cap text-6xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">ĐỀ KIỂM TRA HSK 1</h1>
+            <h2 class="text-xl text-gray-600 mb-6">Bài 12 - 15</h2>
+            
+            <div class="bg-blue-50 text-left p-5 rounded-xl mb-8">
+                <ul class="space-y-3 text-gray-700 font-medium">
+                    <li><i class="fa-regular fa-clock text-blue-500 mr-2"></i> Thời gian làm bài: <b>30 phút</b></li>
+                    <li><i class="fa-solid fa-bullseye text-blue-500 mr-2"></i> Tổng điểm: <b>200 điểm</b> (20 câu)</li>
+                    <li><i class="fa-solid fa-hand-pointer text-blue-500 mr-2"></i> <b>Hướng dẫn:</b> Chạm để chọn đáp án và sắp xếp các từ.</li>
+                </ul>
+            </div>
+            
+            <!-- Phần nhập tên -->
+            <div class="mb-6 text-left">
+                <label for="student-name" class="block text-gray-700 font-bold mb-2">Họ và tên học viên <span class="text-red-500">*</span></label>
+                <input type="text" id="student-name" placeholder="Nhập họ và tên của bạn..." class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 transition font-sans text-lg">
+                <p id="name-error" class="text-red-500 text-sm hidden mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i>Vui lòng nhập tên của bạn để bắt đầu!</p>
+            </div>
+
+            <button onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg transition duration-300 shadow-lg transform hover:-translate-y-1">
+                Bắt Đầu Làm Bài <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" class="hidden pb-24">
+        <!-- Top Bar Timer -->
+        <div class="timer-fixed shadow-sm">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="font-bold text-gray-800 hidden sm:block">Kiểm tra HSK 1</div>
+                <div class="flex items-center space-x-4">
+                    <div id="timer-display" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-bold text-xl font-mono flex items-center">
+                        <i class="fa-regular fa-clock mr-2"></i> 30:00
+                    </div>
+                    <button onclick="submitQuiz()" id="submit-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition">
+                        Nộp Bài
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 mt-8" id="quiz-container">
+            <!-- Content dynamically generated here -->
+        </div>
+    </div>
+
+    <!-- RESULT MODAL -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+            <div class="bg-blue-600 p-6 text-center text-white">
+                <i class="fa-solid fa-clipboard-check text-5xl mb-3"></i>
+                <h2 class="text-2xl font-bold">KẾT QUẢ BÀI LÀM</h2>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-1" id="result-student-name">Tên Học Viên</h3>
+                    <p class="text-gray-500 mb-1">Tổng điểm của bạn</p>
+                    <div class="text-5xl font-bold text-blue-600" id="total-score-display">0/200</div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Phần I (Nối câu & Trắc nghiệm)</span>
+                        <span class="font-bold text-blue-600" id="score-p1">0/100</span>
+                    </div>
+                    <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Phần II (Sắp xếp câu)</span>
+                        <span class="font-bold text-blue-600" id="score-p2">0/50</span>
+                    </div>
+                    <div class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Phần III (Dịch sang Tiếng Trung)</span>
+                        <span class="font-bold text-blue-600" id="score-p3">0/50</span>
+                    </div>
+                </div>
+                
+                <button onclick="closeModal()" class="mt-8 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition">
+                    Xem Lại Chi Tiết Bài Làm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- HELPER: Render Pinyin ---
+        function r(text) {
+            if (!text) return '';
+            // Sử dụng Regex để chuyển đổi "Chữ/pinyin" thành thẻ <ruby> mà không làm hỏng thẻ HTML
+            let html = text.replace(/([^\s\/<>]+)\/([a-zA-Zāáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜü]+)/g, '<ruby>$1<rt>$2</rt></ruby>');
+            // Xóa khoảng trắng thừa giữa các chữ để câu hiển thị liền mạch đẹp mắt
+            html = html.replace(/<\/ruby>\s+<ruby>/g, '</ruby><ruby>');
+            html = html.replace(/<\/ruby>\s+([，。？！：；、])/g, '</ruby>$1');
+            html = html.replace(/([，。？！：；、])\s+<ruby>/g, '$1<ruby>');
+            return html;
+        }
+
+        // --- DATA ---
+        const answerKey = {
+            q1: 'E', q2: 'B', q3: 'D', q4: 'C', q5: 'A',
+            q6: 'A', q7: 'C', q8: 'A', q9: 'B', q10: 'B',
+            q11: ['你喜欢怎么样的天气？', '你喜欢什么样的天气？', '你喜欢怎么样的天气', '你喜欢什么样的天气'],
+            q12: ['早上八点前我会上班', '我会早上八点前上班'],
+            q13: ['我跟她是六月二号认识的', '我是跟她六月二号认识的'],
+            q14: ['他来学校了没在家', '他没在家来学校了'],
+            q15: ['我爸爸也很喜欢喝咖啡', '我爸爸也喜欢喝咖啡', '我爸爸也很喜欢喝咖啡'],
+            q16: 'A', q17: 'B', q18: 'B', q19: 'C', q20: 'C'
+        };
+
+        const matchingLeft = [
+            `1. 今/jīn 天/tiān 你/nǐ 的/de 身/shēn 体/tǐ 怎/zěn 么/me 样/yàng ？`,
+            `2. 你/nǐ 喜/xǐ 欢/huan 的/de 水/shuǐ 果/guǒ 是/shì 什/shén 么/me ？`,
+            `3. 昨/zuó 天/tiān 晚/wǎn 上/shang 七/qī 点/diǎn 你/nǐ 在/zài 做/zuò 什/shén 么/me ？`,
+            `4. 我/wǒ 是/shì 越/Yuè 南/nán 人/rén 。`,
+            `5. 明/míng 天/tiān 你/nǐ 去/qù 哪/nǎr ？`
+        ];
+        
+        const matchingRight = [
+            `A. 我/wǒ 会/huì 跟/gēn 朋/péng 友/you 见/jiàn 面/miàn ， 喝/hē 咖/kā 啡/fēi 。`,
+            `B. 我/wǒ 最/zuì 爱/ài 吃/chī 草/cǎo 莓/méi 。`,
+            `C. 我/wǒ 也/yě 是/shì 。`,
+            `D. 那/nà 时/shí 我/wǒ 在/zài 学/xué 习/xí 汉/Hàn 语/yǔ 呢/ne 。`,
+            `E. 我/wǒ 很/hěn 好/hǎo 。`
+        ];
+
+        const mcqData = [
+            {
+                id: 6, text: `6. Câu nào sai?`,
+                opts: [
+                    {val: 'A', txt: `A. 明/míng 天/tiān 一/yì 起/qǐ 我/wǒ 去/qù 玩/wán 吧/ba ！`},
+                    {val: 'B', txt: `B. 今/jīn 天/tiān 天/tiān 气/qì 不/bù 冷/lěng 不/bú 热/rè 。`},
+                    {val: 'C', txt: `C. 我/wǒ 去/qù 商/shāng 店/diàn 买/mǎi 一/yì 点/diǎnr 水/shuǐ 果/guǒ 。`}
+                ]
+            },
+            {
+                id: 7, text: `7. Đặt “的/de” vào vị trí thích hợp:`,
+                subtext: `我/wǒ 是/shì <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(1)</span> 昨/zuó 天/tiān <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(2)</span> 晚/wǎn 上/shang 来/lái 这/zhè 里/li <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(3)</span> 。`,
+                opts: [{val: 'A', txt: 'A. Vị trí (1)'}, {val: 'B', txt: 'B. Vị trí (2)'}, {val: 'C', txt: 'C. Vị trí (3)'}]
+            },
+            {
+                id: 8, text: `8. Đặt “给/gěi” vào vị trí thích hợp:`,
+                subtext: `我/wǒ 去/qù 超/chāo 市/shì <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(1)</span> 妈/mā 妈/ma <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(2)</span> 买/mǎi <span class="bg-blue-600 text-white rounded px-2 mx-1 text-sm">(3)</span> 一/yì 点/diǎnr 东/dōng 西/xi 。`,
+                opts: [{val: 'A', txt: 'A. Vị trí (1)'}, {val: 'B', txt: 'B. Vị trí (2)'}, {val: 'C', txt: 'C. Vị trí (3)'}]
+            },
+            {
+                id: 9, text: `9. Điền từ thích hợp vào chỗ trống:`,
+                subtext: `我/wǒ 不/bù ....... 他/tā 是/shì 谁/shuí 。`,
+                opts: [
+                    {val: 'A', txt: `A. 认/rèn 识/shi`},
+                    {val: 'B', txt: `B. 知/zhī 道/dao`},
+                    {val: 'C', txt: `C. 会/huì`}
+                ]
+            },
+            {
+                id: 10, text: `10. Trình tự thời gian nào dưới đây là đúng?`,
+                opts: [
+                    {val: 'A', txt: `A. 星/xīng 期/qī 一/yī ， 六/liù 月/yuè 二/èr 号/hào 2025 年/nián`},
+                    {val: 'B', txt: `B. 2024 年/nián 六/liù 月/yuè 二/èr 号/hào ， 星/xīng 期/qī 一/yī`},
+                    {val: 'C', txt: `C. 星/xīng 期/qī 一/yī ， 2025 年/nián 六/liù 月/yuè 二/èr 号/hào`}
+                ]
+            }
+        ];
+
+        // REARRANGE (TAP & DROP)
+        let rearrangeState = {
+            11: { available: [0, 1, 2, 3, 4, 5], selected: [] },
+            12: { available: [0, 1, 2, 3], selected: [] },
+            13: { available: [0, 1, 2, 3, 4, 5], selected: [] },
+            14: { available: [0, 1, 2, 3], selected: [] },
+            15: { available: [0, 1, 2, 3, 4], selected: [] }
+        };
+
+        const rearrangeData = [
+            { id: 11, words: [`喜/xǐ 欢/huan`, `的/de`, `你/nǐ`, `怎/zěn 么/me 样/yàng`, `天/tiān 气/qì`, `？/?`] },
+            { id: 12, words: [`八/bā 点/diǎn 前/qián`, `我/wǒ 会/huì`, `早/zǎo 上/shang`, `上/shàng 班/bān`] },
+            { id: 13, words: [`我/wǒ 跟/gēn 她/tā`, `二/èr 号/hào`, `认/rèn 识/shi`, `六/liù 月/yuè`, `的/de`, `是/shì`] },
+            { id: 14, words: [`他/tā`, `了/le`, `没/méi 在/zài 家/jiā`, `来/lái 学/xué 校/xiào`] },
+            { id: 15, words: [`也/yě`, `我/wǒ 爸/bà 爸/ba`, `喝/hē 咖/kā 啡/fēi`, `喜/xǐ 欢/huan`, `很/hěn`] }
+        ];
+
+        const translateData = [
+            { id: 16, text: `16. Nhìn thấy`, opts: [{val: 'A', txt: `A. 看/kàn 见/jiàn`}, {val: 'B', txt: `B. 听/tīng 见/jiàn`}, {val: 'C', txt: `C. 认/rèn 识/shi`}, {val: 'D', txt: `D. 知/zhī 道/dao`}] },
+            { id: 17, text: `17. Xe đạp`, opts: [{val: 'A', txt: `A. 出/chū 租/zū 车/chē`}, {val: 'B', txt: `B. 自/zì 行/xíng 车/chē`}, {val: 'C', txt: `C. 公/gōng 交/jiāo 车/chē`}, {val: 'D', txt: `D. 火/huǒ 车/chē`}] },
+            { id: 18, text: `18. Ngủ trưa`, opts: [{val: 'A', txt: `A. 睡/shuì 觉/jiào`}, {val: 'B', txt: `B. 睡/shuì 午/wǔ 觉/jiào`}, {val: 'C', txt: `C. 起/qǐ 床/chuáng`}, {val: 'D', txt: `D. 休/xiū 息/xi`}] },
+            { id: 19, text: `19. Taxi`, opts: [{val: 'A', txt: `A. 自/zì 行/xíng 车/chē`}, {val: 'B', txt: `B. 公/gōng 交/jiāo 车/chē`}, {val: 'C', txt: `C. 出/chū 租/zū 车/chē`}, {val: 'D', txt: `D. 飞/fēi 机/jī`}] },
+            { id: 20, text: `20. Cao hứng (vui mừng)`, opts: [{val: 'A', txt: `A. 生/shēng 气/qì`}, {val: 'B', txt: `B. 难/nán 过/guò`}, {val: 'C', txt: `C. 高/gāo 兴/xìng`}, {val: 'D', txt: `D. 喜/xǐ 欢/huan`}] }
+        ];
+
+        // --- RENDER LOGIC ---
+        function renderQuiz() {
+            let html = '';
+
+            // PART 1: MATCHING
+            html += `<h2 class="text-2xl font-bold text-blue-700 mb-4 border-b-2 border-blue-200 pb-2">I. ĐỌC VÀ CHỌN ĐÁP ÁN ĐÚNG</h2>`;
+            html += `<div class="q-card mb-6"><h3 class="font-bold text-lg mb-4 text-gray-700">Câu 1-5: Nối các vế sau thành câu có nghĩa</h3>`;
+            html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">`;
+            
+            html += `<div class="space-y-4">`;
+            matchingLeft.forEach(item => { html += `<div class="chinese-text bg-gray-50 p-3 rounded border">${r(item)}</div>`; });
+            html += `</div>`;
+            
+            html += `<div class="space-y-4">`;
+            matchingRight.forEach(item => { html += `<div class="chinese-text bg-blue-50 p-3 rounded border border-blue-100">${r(item)}</div>`; });
+            html += `</div></div>`;
+
+            html += `<div class="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-gray-100 p-4 rounded-lg">`;
+            for(let i=1; i<=5; i++) {
+                html += `
+                <div class="flex flex-col items-center">
+                    <label class="font-bold mb-1">Câu ${i}</label>
+                    <select id="q${i}" class="w-full p-2 border rounded shadow-sm outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="">-- Chọn --</option>
+                        <option value="A">Đáp án A</option>
+                        <option value="B">Đáp án B</option>
+                        <option value="C">Đáp án C</option>
+                        <option value="D">Đáp án D</option>
+                        <option value="E">Đáp án E</option>
+                    </select>
+                    <div id="ans-q${i}" class="hidden text-sm font-bold mt-1"></div>
+                </div>`;
+            }
+            html += `</div></div>`;
+
+            // PART 1.2: MCQ
+            mcqData.forEach(q => {
+                html += `<div class="q-card" id="card-q${q.id}">
+                    <div class="chinese-text font-bold mb-2">${r(q.text)}</div>
+                    ${q.subtext ? `<div class="chinese-text mb-4 text-gray-800 bg-gray-50 p-4 rounded-lg border">${r(q.subtext)}</div>` : ''}
+                    <div class="space-y-2 pl-2 mt-3">`;
+                q.opts.forEach(opt => {
+                    html += `
+                        <label class="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="q${q.id}" value="${opt.val}" class="w-5 h-5 text-blue-600">
+                            <span class="chinese-text">${r(opt.txt)}</span>
+                        </label>`;
+                });
+                html += `</div><div id="ans-q${q.id}" class="hidden text-sm font-bold mt-3 p-2 rounded bg-gray-100"></div></div>`;
+            });
+
+            // PART 2: REARRANGE (TAP TO DROP)
+            html += `<h2 class="text-2xl font-bold text-blue-700 mt-10 mb-4 border-b-2 border-blue-200 pb-2">II. VIẾT ĐÁP ÁN ĐÚNG (SẮP XẾP)</h2>`;
+            html += `<div class="mb-4 text-gray-600"><i class="fa-solid fa-circle-info text-blue-500 mr-2"></i><b>Hướng dẫn:</b> Chạm vào các từ bên dưới để ghép thành câu hoàn chỉnh lên ô trống.</div>`;
+            
+            rearrangeData.forEach(q => {
+                html += `<div class="q-card" id="card-q${q.id}">
+                    <div class="font-bold text-lg mb-3 text-gray-800">Câu ${q.id}:</div>
+                    <!-- Selected Zone -->
+                    <div class="min-h-[70px] p-3 border-2 border-dashed border-blue-400 bg-blue-50 rounded-lg mb-4 flex flex-wrap gap-2 items-center" id="q${q.id}-selected"></div>
+                    <!-- Available Zone -->
+                    <div class="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200" id="q${q.id}-available"></div>
+                    <!-- Hidden input to store value -->
+                    <input type="hidden" id="q${q.id}" value="">
+                    <!-- Answer display -->
+                    <div id="ans-q${q.id}" class="hidden text-sm font-bold mt-3 p-2 rounded bg-gray-100"></div>
+                </div>`;
+            });
+
+            // PART 3: TRANSLATE (MCQ)
+            html += `<h2 class="text-2xl font-bold text-blue-700 mt-10 mb-4 border-b-2 border-blue-200 pb-2">III. DỊCH SANG TIẾNG TRUNG</h2>`;
+            translateData.forEach(q => {
+                html += `<div class="q-card" id="card-q${q.id}">
+                    <div class="font-bold text-lg mb-3 text-gray-800">${q.text}</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2 mt-3">`;
+                q.opts.forEach(opt => {
+                    html += `
+                        <label class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition">
+                            <input type="radio" name="q${q.id}" value="${opt.val}" class="w-5 h-5 text-blue-600">
+                            <span class="chinese-text">${r(opt.txt)}</span>
+                        </label>`;
+                });
+                html += `</div><div id="ans-q${q.id}" class="hidden text-sm font-bold mt-3 p-2 rounded bg-gray-100"></div></div>`;
+            });
+
+            document.getElementById('quiz-container').innerHTML = html;
+
+            // Render interactive rearrange elements
+            rearrangeData.forEach(q => {
+                renderRearrange(q.id);
+            });
+        }
+
+        function renderRearrange(qId) {
+            const qData = rearrangeData.find(d => d.id === qId);
+            const availDiv = document.getElementById(`q${qId}-available`);
+            const selDiv = document.getElementById(`q${qId}-selected`);
+
+            availDiv.innerHTML = '';
+            selDiv.innerHTML = '';
+
+            rearrangeState[qId].selected.forEach(wordIdx => {
+                let word = qData.words[wordIdx];
+                selDiv.innerHTML += `<button onclick="toggleWord(${qId}, ${wordIdx}, 'selected')" class="px-4 py-2 bg-white border border-blue-500 rounded-lg shadow-sm hover:bg-red-50 transition transform hover:-translate-y-1 chinese-text font-bold text-blue-800">${r(word)}</button>`;
+            });
+
+            rearrangeState[qId].available.forEach(wordIdx => {
+                let word = qData.words[wordIdx];
+                availDiv.innerHTML += `<button onclick="toggleWord(${qId}, ${wordIdx}, 'available')" class="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow hover:bg-blue-50 transition transform hover:-translate-y-1 chinese-text text-gray-700">${r(word)}</button>`;
+            });
+            
+            // Build raw string value for scoring
+            const currentText = rearrangeState[qId].selected.map(idx => qData.words[idx].replace(/\/[a-zA-Zāáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜü]+[r]?/g, '').replace(/\s+/g, '')).join('');
+            document.getElementById(`q${qId}`).value = currentText;
+        }
+
+        function toggleWord(qId, wordIdx, source) {
+            if (isSubmitted) return;
+            let state = rearrangeState[qId];
+            if (source === 'available') {
+                state.available = state.available.filter(idx => idx !== wordIdx);
+                state.selected.push(wordIdx);
+            } else {
+                state.selected = state.selected.filter(idx => idx !== wordIdx);
+                state.available.push(wordIdx);
+                state.available.sort((a,b) => a-b); // keep original sorting in bank
+            }
+            renderRearrange(qId);
+        }
+
+        // --- TIMER & STATE LOGIC ---
+        let timeRemaining = 30 * 60; // 30 minutes
+        let timerInterval;
+        let isSubmitted = false;
+        let studentName = "";
+
+        function startQuiz() {
+            const nameInput = document.getElementById('student-name');
+            const nameError = document.getElementById('name-error');
+            
+            if (!nameInput.value.trim()) {
+                nameError.classList.remove('hidden');
+                nameInput.classList.add('border-red-500');
+                nameInput.focus();
+                return;
+            }
+            
+            nameError.classList.add('hidden');
+            nameInput.classList.remove('border-red-500');
+            studentName = nameInput.value.trim();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            renderQuiz();
+            
+            timerInterval = setInterval(() => {
+                if(timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    if(!isSubmitted) submitQuiz();
+                } else {
+                    timeRemaining--;
+                    let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                    let s = (timeRemaining % 60).toString().padStart(2, '0');
+                    document.getElementById('timer-display').innerHTML = `<i class="fa-regular fa-clock mr-2"></i> ${m}:${s}`;
+                    
+                    if(timeRemaining < 300) {
+                        document.getElementById('timer-display').classList.remove('bg-blue-100', 'text-blue-700');
+                        document.getElementById('timer-display').classList.add('bg-red-100', 'text-red-700', 'animate-pulse');
+                    }
+                }
+            }, 1000);
+        }
+
+        function normalizeStr(str) {
+            return (str || '').replace(/[^\u4e00-\u9fa5A-Za-z0-9]/g, '').toLowerCase();
+        }
+
+        function submitQuiz() {
+            if(isSubmitted) return;
+            if(timeRemaining > 0 && !confirm("Bạn có chắc chắn muốn nộp bài ngay?")) return;
+            
+            isSubmitted = true;
+            clearInterval(timerInterval);
+            document.getElementById('submit-btn').classList.add('hidden');
+            document.getElementById('timer-display').classList.remove('animate-pulse');
+            document.getElementById('timer-display').innerHTML = "ĐÃ NỘP BÀI";
+
+            let scores = { p1: 0, p2: 0, p3: 0 };
+            
+            // Check Q1-Q5 (Matching)
+            for(let i=1; i<=5; i++) {
+                let el = document.getElementById('q'+i);
+                let ansDiv = document.getElementById('ans-q'+i);
+                ansDiv.classList.remove('hidden');
+                el.disabled = true;
+                
+                if(el.value === answerKey['q'+i]) {
+                    scores.p1 += 10;
+                    ansDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 mr-1"></i> Đúng`;
+                    ansDiv.className = 'text-sm font-bold mt-1 text-green-700';
+                } else {
+                    ansDiv.innerHTML = `<i class="fa-solid fa-xmark text-red-600 mr-1"></i> Sai. Đáp án đúng: ${answerKey['q'+i]}`;
+                    ansDiv.className = 'text-sm font-bold mt-1 text-red-600';
+                }
+            }
+
+            // Check Q6-Q10 (MCQ)
+            for(let i=6; i<=10; i++) {
+                let checked = document.querySelector(`input[name="q${i}"]:checked`);
+                let val = checked ? checked.value : '';
+                let card = document.getElementById('card-q'+i);
+                let ansDiv = document.getElementById('ans-q'+i);
+                ansDiv.classList.remove('hidden');
+                
+                document.querySelectorAll(`input[name="q${i}"]`).forEach(inp => inp.disabled = true);
+
+                if(val === answerKey['q'+i]) {
+                    scores.p1 += 10;
+                    card.classList.add('correct');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 mr-1"></i> Chính xác`;
+                    ansDiv.classList.add('text-green-700', 'bg-green-100');
+                } else {
+                    card.classList.add('wrong');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-xmark text-red-600 mr-1"></i> Sai. Đáp án đúng là: ${answerKey['q'+i]}`;
+                    ansDiv.classList.add('text-red-700', 'bg-red-100');
+                }
+            }
+
+            // Check Q11-Q15 (Rearrange)
+            for(let i=11; i<=15; i++) {
+                let el = document.getElementById('q'+i);
+                let val = normalizeStr(el.value);
+                let correctArr = answerKey['q'+i].map(normalizeStr);
+                
+                let card = document.getElementById('card-q'+i);
+                let ansDiv = document.getElementById('ans-q'+i);
+                ansDiv.classList.remove('hidden');
+
+                if(val && correctArr.includes(val)) {
+                    scores.p2 += 10;
+                    card.classList.add('correct');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 mr-1"></i> Chính xác`;
+                    ansDiv.classList.add('text-green-700', 'bg-green-100');
+                } else {
+                    card.classList.add('wrong');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-xmark text-red-600 mr-1"></i> Sai. Đáp án: <span class="chinese-text text-base">${answerKey['q'+i][0]}</span>`;
+                    ansDiv.classList.add('text-red-700', 'bg-red-100');
+                }
+                
+                // Disable buttons
+                let buttons = card.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                    btn.removeAttribute('onclick');
+                });
+            }
+
+            // Check Q16-Q20 (Translate MCQ)
+            for(let i=16; i<=20; i++) {
+                let checked = document.querySelector(`input[name="q${i}"]:checked`);
+                let val = checked ? checked.value : '';
+                
+                let card = document.getElementById('card-q'+i);
+                let ansDiv = document.getElementById('ans-q'+i);
+                ansDiv.classList.remove('hidden');
+                document.querySelectorAll(`input[name="q${i}"]`).forEach(inp => inp.disabled = true);
+
+                if(val === answerKey['q'+i]) {
+                    scores.p3 += 10;
+                    card.classList.add('correct');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-check text-green-600 mr-1"></i> Chính xác`;
+                    ansDiv.classList.add('text-green-700', 'bg-green-100');
+                } else {
+                    card.classList.add('wrong');
+                    ansDiv.innerHTML = `<i class="fa-solid fa-xmark text-red-600 mr-1"></i> Sai. Đáp án đúng là: ${answerKey['q'+i]}`;
+                    ansDiv.classList.add('text-red-700', 'bg-red-100');
+                }
+            }
+
+            // Show results
+            let total = scores.p1 + scores.p2 + scores.p3;
+            document.getElementById('result-student-name').innerText = studentName;
+            document.getElementById('score-p1').innerText = `${scores.p1}/100`;
+            document.getElementById('score-p2').innerText = `${scores.p2}/50`;
+            document.getElementById('score-p3').innerText = `${scores.p3}/50`;
+            document.getElementById('total-score-display').innerText = `${total}/200`;
+            
+            // Auto scroll top and show modal
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            document.getElementById('result-modal').classList.remove('hidden');
+            document.getElementById('result-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+            document.getElementById('result-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
