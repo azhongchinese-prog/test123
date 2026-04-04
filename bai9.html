@@ -1,0 +1,577 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Tiếng Trung Tương Tác</title>
+    <style>
+        :root {
+            --primary-color: #d32f2f;
+            --secondary-color: #1976d2;
+            --bg-color: #f9f9f9;
+            --box-bg: #ffffff;
+            --correct-bg: #e8f5e9;
+            --correct-border: #4caf50;
+            --incorrect-bg: #ffebee;
+            --incorrect-border: #f44336;
+            --highlight-color: #fff9c4;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 2;
+            background-color: var(--bg-color);
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 40px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .exercise-box {
+            background-color: var(--box-bg);
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .exercise-box:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 8px;
+        }
+
+        .dialogue-line {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .speaker {
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-right: 12px;
+            min-width: 70px;
+        }
+
+        ruby {
+            font-size: 1.3rem;
+            margin-right: 6px;
+            text-align: center;
+        }
+
+        rt {
+            font-size: 0.65rem;
+            color: #666;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Tương tác Dropdown */
+        select.blank-select {
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            margin: 0 5px;
+            border: 2px solid #aaa;
+            border-radius: 6px;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        select.blank-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+        }
+
+        select.blank-select.correct {
+            border-color: var(--correct-border);
+            background-color: var(--correct-bg);
+            color: #1b5e20;
+        }
+
+        select.blank-select.incorrect {
+            border-color: var(--incorrect-border);
+            background-color: var(--incorrect-bg);
+            color: #b71c1c;
+        }
+
+        .btn-check {
+            display: block;
+            width: 100%;
+            max-width: 200px;
+            margin: 20px auto 0;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-check:hover {
+            background-color: #1565c0;
+        }
+
+        /* Tương tác Bảng */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .clickable-row:hover {
+            background-color: #fff3e0;
+        }
+
+        .clickable-row.active {
+            background-color: #ffe0b2;
+            font-weight: bold;
+        }
+
+        .td-word {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .td-trans {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .pattern-box {
+            font-size: 1.4rem;
+            font-weight: bold;
+            background-color: var(--highlight-color);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 2px dashed #fbc02d;
+            line-height: 2.5;
+        }
+
+        .pattern-trans {
+            font-size: 1rem;
+            color: #555;
+            font-weight: normal;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .slot {
+            color: var(--primary-color);
+            display: inline-block;
+            margin: 0 4px;
+            border-bottom: 2px solid var(--primary-color);
+            min-width: 50px;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+        
+        .dialogue-interactive-box {
+            background-color: #e3f2fd;
+            border: 2px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .dialogue-interactive-box .slot {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            padding: 0 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="logo-container">
+        <img src="logo.webp" alt="Logo Trung Tâm" onerror="this.style.display='none'">
+    </div>
+
+    <h1>Bài Tập Luyện Tập Hội Thoại</h1>
+
+    <!-- PHẦN 1: ĐIỀN TỪ VÀO CHỖ TRỐNG -->
+    <h2>Phần 1: Nghe hiểu & Điền từ</h2>
+    <p style="text-align: center; color: #666;">Chọn từ thích hợp trong danh sách thả xuống để hoàn thành đoạn hội thoại.</p>
+
+    <div class="exercise-box">
+        <h3>Hội thoại 1</h3>
+        <div class="dialogue-line">
+            <span class="speaker">李文:</span> 
+            <ruby>学校<rt>xuéxiào</rt></ruby><ruby>前边<rt>qiánbian</rt></ruby><ruby>有<rt>yǒu</rt></ruby><ruby>一家<rt>yì jiā</rt></ruby> 
+            <select class="blank-select" data-answer="diànyǐngyuàn">
+                <option value="">--- Chọn ---</option>
+                <option value="diànyǐngyuàn">电影院</option>
+                <option value="qī diǎn">七点</option>
+                <option value="fànguǎn">饭馆</option>
+            </select> 。
+        </div>
+        <div class="dialogue-line">
+            <span class="speaker">白家月:</span> 
+            <ruby>对<rt>duì</rt></ruby>。<ruby>我们<rt>wǒmen</rt></ruby><ruby>晚上<rt>wǎnshang</rt></ruby><ruby>去<rt>qù</rt></ruby><ruby>那个<rt>nàge</rt></ruby> 
+            <select class="blank-select" data-answer="diànyǐngyuàn">
+                <option value="">--- Chọn ---</option>
+                <option value="qī diǎn">七点</option>
+                <option value="xuéxiào">学校</option>
+                <option value="diànyǐngyuàn">电影院</option>
+            </select> 
+            <ruby>看<rt>kàn</rt></ruby><ruby>电影<rt>diànyǐng</rt></ruby><ruby>吧<rt>ba</rt></ruby>。
+        </div>
+        <div class="dialogue-line">
+            <span class="speaker">李文:</span> 
+            <ruby>好<rt>hǎo</rt></ruby>！<ruby>我们<rt>wǒmen</rt></ruby> 
+            <select class="blank-select" data-answer="qī diǎn">
+                <option value="">--- Chọn ---</option>
+                <option value="diànyǐngyuàn">电影院</option>
+                <option value="qī diǎn">七点</option>
+                <option value="míngtiān">明天</option>
+            </select> 
+            <ruby>在<rt>zài</rt></ruby><ruby>电影院<rt>diànyǐngyuàn</rt></ruby><ruby>外边<rt>wàibian</rt></ruby><ruby>见<rt>jiàn</rt></ruby>，<ruby>好吗<rt>hǎo ma</rt></ruby>？
+        </div>
+        <div class="dialogue-line">
+            <span class="speaker">白家月:</span> 
+            <ruby>好的<rt>hǎo de</rt></ruby>，<ruby>晚上<rt>wǎnshang</rt></ruby><ruby>七点<rt>qī diǎn</rt></ruby><ruby>见<rt>jiàn</rt></ruby>！
+        </div>
+    </div>
+
+    <!-- ... (Giữ nguyên các bài tập điền từ 2, 3 của phần 1 như cũ nếu cần) ... -->
+
+    <button class="btn-check" onclick="checkAnswers()">Kiểm tra đáp án</button>
+
+    <!-- PHẦN 2: BÀI TẬP THAY THẾ (Câu đơn lẻ) -->
+    <h2>Phần 2: Luyện nói cấu trúc đơn (Nhấp để thay đổi)</h2>
+    <p style="text-align: center; color: #666;">Nhấp chuột vào các hàng trong bảng dưới đây để ghép từ mới vào mẫu câu chuẩn.</p>
+
+    <div class="exercise-box">
+        <h3>Mẫu câu: Nói về hoạt động trong ngày</h3>
+        <div class="pattern-box" id="pattern3">
+            <ruby>我<rt>Wǒ</rt></ruby> 
+            <span class="slot slot-a"><ruby>白天<rt>báitiān</rt></ruby></span> 
+            <ruby>在<rt>zài</rt></ruby> 
+            <span class="slot slot-b"><ruby>家里<rt>jiā li</rt></ruby></span> 
+            <span class="slot slot-c"><ruby>读书<rt>dúshū</rt></ruby></span>。
+            <div class="pattern-trans">(Tôi ban ngày ở nhà đọc sách.)</div>
+        </div>
+        
+        <table id="table3">
+            <tr>
+                <th>[A] Thời gian</th>
+                <th>[B] Địa điểm</th>
+                <th>[C] Hành động</th>
+            </tr>
+            <tr class="clickable-row active" onclick="updatePattern(this, 'pattern3', 'Tôi ban ngày ở nhà đọc sách.')">
+                <td>
+                    <div class="td-word"><ruby>白天<rt>báitiān</rt></ruby></div>
+                    <div class="td-trans">(Ban ngày)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>家里<rt>jiā li</rt></ruby></div>
+                    <div class="td-trans">(Trong nhà)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>读书<rt>dúshū</rt></ruby></div>
+                    <div class="td-trans">(Đọc sách)</div>
+                </td>
+            </tr>
+            <tr class="clickable-row" onclick="updatePattern(this, 'pattern3', 'Tôi buổi sáng ở trường học tập.')">
+                <td>
+                    <div class="td-word"><ruby>上午<rt>shàngwǔ</rt></ruby></div>
+                    <div class="td-trans">(Buổi sáng)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>学校<rt>xuéxiào</rt></ruby></div>
+                    <div class="td-trans">(Trường học)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>学习<rt>xuéxí</rt></ruby></div>
+                    <div class="td-trans">(Học tập)</div>
+                </td>
+            </tr>
+            <tr class="clickable-row" onclick="updatePattern(this, 'pattern3', 'Tôi buổi chiều ở công ty làm việc.')">
+                <td>
+                    <div class="td-word"><ruby>下午<rt>xiàwǔ</rt></ruby></div>
+                    <div class="td-trans">(Buổi chiều)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>公司<rt>gōngsī</rt></ruby></div>
+                    <div class="td-trans">(Công ty)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>工作<rt>gōngzuò</rt></ruby></div>
+                    <div class="td-trans">(Làm việc)</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- PHẦN 3: BÀI TẬP THAY THẾ TOÀN ĐOẠN HỘI THOẠI (MỚI) -->
+    <h2>Phần 3: Luyện tập đóng vai hội thoại</h2>
+    <p style="text-align: center; color: #666;">Nhấp vào các từ vựng trong bảng để thay đổi hoàn cảnh của toàn bộ cuộc hẹn bên dưới.</p>
+
+    <div class="exercise-box">
+        <h3>Tình huống: Hẹn bạn bè đi chơi</h3>
+        
+        <div class="dialogue-interactive-box" id="full-dialogue-1">
+            <div class="dialogue-line">
+                <span class="speaker">A:</span> 
+                <ruby>学校<rt>xuéxiào</rt></ruby><ruby>前边<rt>qiánbian</rt></ruby><ruby>有<rt>yǒu</rt></ruby><ruby>一家<rt>yì jiā</rt></ruby> 
+                <span class="slot d-slot-place"><ruby>电影院<rt>diànyǐngyuàn</rt></ruby></span>。
+            </div>
+            <div class="dialogue-line">
+                <span class="speaker">B:</span> 
+                <ruby>对<rt>duì</rt></ruby>。<ruby>我们<rt>wǒmen</rt></ruby> 
+                <span class="slot d-slot-time"><ruby>晚上<rt>wǎnshang</rt></ruby></span> 
+                <ruby>去<rt>qù</rt></ruby><ruby>那个<rt>nàge</rt></ruby> 
+                <span class="slot d-slot-place"><ruby>电影院<rt>diànyǐngyuàn</rt></ruby></span> 
+                <span class="slot d-slot-action"><ruby>看电影<rt>kàn diànyǐng</rt></ruby></span> 
+                <ruby>吧<rt>ba</rt></ruby>。
+            </div>
+            <div class="dialogue-line">
+                <span class="speaker">A:</span> 
+                <ruby>好<rt>hǎo</rt></ruby>！<ruby>我们<rt>wǒmen</rt></ruby> 
+                <span class="slot d-slot-hour"><ruby>七点<rt>qī diǎn</rt></ruby></span> 
+                <ruby>在<rt>zài</rt></ruby> 
+                <span class="slot d-slot-place"><ruby>电影院<rt>diànyǐngyuàn</rt></ruby></span> 
+                <ruby>外边<rt>wàibian</rt></ruby><ruby>见<rt>jiàn</rt></ruby>，<ruby>好吗<rt>hǎo ma</rt></ruby>？
+            </div>
+            <div class="dialogue-line">
+                <span class="speaker">B:</span> 
+                <ruby>好的<rt>hǎo de</rt></ruby>，
+                <span class="slot d-slot-time"><ruby>晚上<rt>wǎnshang</rt></ruby></span> 
+                <span class="slot d-slot-hour"><ruby>七点<rt>qī diǎn</rt></ruby></span> 
+                <ruby>见<rt>jiàn</rt></ruby>！
+            </div>
+        </div>
+
+        <table id="table-full-dialogue">
+            <tr>
+                <th>[1] Địa điểm</th>
+                <th>[2] Buổi / Thời gian</th>
+                <th>[3] Hành động</th>
+                <th>[4] Giờ hẹn cụ thể</th>
+            </tr>
+            <tr class="clickable-row active" onclick="updateFullDialogue(this, 'full-dialogue-1')">
+                <td>
+                    <div class="td-word"><ruby>电影院<rt>diànyǐngyuàn</rt></ruby></div>
+                    <div class="td-trans">(Rạp chiếu phim)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>晚上<rt>wǎnshang</rt></ruby></div>
+                    <div class="td-trans">(Buổi tối)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>看电影<rt>kàn diànyǐng</rt></ruby></div>
+                    <div class="td-trans">(Xem phim)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>七点<rt>qī diǎn</rt></ruby></div>
+                    <div class="td-trans">(7 giờ)</div>
+                </td>
+            </tr>
+            <tr class="clickable-row" onclick="updateFullDialogue(this, 'full-dialogue-1')">
+                <td>
+                    <div class="td-word"><ruby>饭馆<rt>fànguǎn</rt></ruby></div>
+                    <div class="td-trans">(Nhà hàng/Quán ăn)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>中午<rt>zhōngwǔ</rt></ruby></div>
+                    <div class="td-trans">(Buổi trưa)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>吃饭<rt>chī fàn</rt></ruby></div>
+                    <div class="td-trans">(Ăn cơm)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>十二点<rt>shí'èr diǎn</rt></ruby></div>
+                    <div class="td-trans">(12 giờ)</div>
+                </td>
+            </tr>
+            <tr class="clickable-row" onclick="updateFullDialogue(this, 'full-dialogue-1')">
+                <td>
+                    <div class="td-word"><ruby>咖啡馆<rt>kāfēiguǎn</rt></ruby></div>
+                    <div class="td-trans">(Quán Cafe)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>下午<rt>xiàwǔ</rt></ruby></div>
+                    <div class="td-trans">(Buổi chiều)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>喝咖啡<rt>hē kāfēi</rt></ruby></div>
+                    <div class="td-trans">(Uống cafe)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>三点<rt>sān diǎn</rt></ruby></div>
+                    <div class="td-trans">(3 giờ)</div>
+                </td>
+            </tr>
+            <tr class="clickable-row" onclick="updateFullDialogue(this, 'full-dialogue-1')">
+                <td>
+                    <div class="td-word"><ruby>图书馆<rt>túshūguǎn</rt></ruby></div>
+                    <div class="td-trans">(Thư viện)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>周末<rt>zhōumò</rt></ruby></div>
+                    <div class="td-trans">(Cuối tuần)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>看书<rt>kàn shū</rt></ruby></div>
+                    <div class="td-trans">(Đọc sách)</div>
+                </td>
+                <td>
+                    <div class="td-word"><ruby>九点<rt>jiǔ diǎn</rt></ruby></div>
+                    <div class="td-trans">(9 giờ)</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Xử lý kiểm tra đáp án Phần 1
+        function checkAnswers() {
+            const selects = document.querySelectorAll('.blank-select');
+            let allCorrect = true;
+
+            selects.forEach(select => {
+                select.classList.remove('correct', 'incorrect');
+                if (select.value === '') {
+                    allCorrect = false;
+                    return; 
+                }
+                if (select.value === select.getAttribute('data-answer')) {
+                    select.classList.add('correct');
+                } else {
+                    select.classList.add('incorrect');
+                    allCorrect = false;
+                }
+            });
+
+            if(allCorrect) {
+                setTimeout(() => alert("Chúc mừng! Bạn đã điền đúng toàn bộ! 🎉"), 100);
+            }
+        }
+
+        document.querySelectorAll('.blank-select').forEach(select => {
+            select.addEventListener('change', function() {
+                this.classList.remove('correct', 'incorrect');
+            });
+        });
+
+        // Xử lý Thay thế từ Phần 2 (Câu đơn lẻ)
+        function updatePattern(rowElement, patternId, translation) {
+            const table = rowElement.closest('table');
+            table.querySelectorAll('.clickable-row').forEach(row => row.classList.remove('active'));
+            rowElement.classList.add('active');
+
+            const cells = rowElement.querySelectorAll('td');
+            const patternBox = document.getElementById(patternId);
+            
+            const slotA = patternBox.querySelector('.slot-a');
+            const slotB = patternBox.querySelector('.slot-b');
+            const slotC = patternBox.querySelector('.slot-c');
+            const transBox = patternBox.querySelector('.pattern-trans');
+
+            if (slotA && cells[0]) slotA.innerHTML = cells[0].querySelector('.td-word').innerHTML;
+            if (slotB && cells[1]) slotB.innerHTML = cells[1].querySelector('.td-word').innerHTML;
+            if (slotC && cells[2]) slotC.innerHTML = cells[2].querySelector('.td-word').innerHTML;
+
+            if (transBox && translation) transBox.innerText = `(${translation})`;
+
+            patternBox.style.transform = 'scale(1.02)';
+            setTimeout(() => { patternBox.style.transform = 'scale(1)'; }, 150);
+        }
+
+        // Xử lý Thay thế toàn bộ đoạn hội thoại Phần 3
+        function updateFullDialogue(rowElement, dialogId) {
+            // Đánh dấu hàng đang chọn
+            const table = rowElement.closest('table');
+            table.querySelectorAll('.clickable-row').forEach(row => row.classList.remove('active'));
+            rowElement.classList.add('active');
+
+            // Lấy dữ liệu chữ Hán từ các cột trong hàng
+            const cells = rowElement.querySelectorAll('td');
+            const placeHTML = cells[0].querySelector('.td-word').innerHTML;
+            const timeHTML = cells[1].querySelector('.td-word').innerHTML;
+            const actionHTML = cells[2].querySelector('.td-word').innerHTML;
+            const hourHTML = cells[3].querySelector('.td-word').innerHTML;
+
+            // Tìm hộp chứa đoạn hội thoại
+            const dialogBox = document.getElementById(dialogId);
+
+            // Thay thế TẤT CẢ các vị trí có cùng class tương ứng trong đoạn hội thoại
+            dialogBox.querySelectorAll('.d-slot-place').forEach(el => el.innerHTML = placeHTML);
+            dialogBox.querySelectorAll('.d-slot-time').forEach(el => el.innerHTML = timeHTML);
+            dialogBox.querySelectorAll('.d-slot-action').forEach(el => el.innerHTML = actionHTML);
+            dialogBox.querySelectorAll('.d-slot-hour').forEach(el => el.innerHTML = hourHTML);
+
+            // Hiệu ứng nháy nhẹ hộp thoại để báo hiệu thay đổi
+            dialogBox.style.transform = 'scale(1.02)';
+            dialogBox.style.borderColor = '#d32f2f';
+            setTimeout(() => { 
+                dialogBox.style.transform = 'scale(1)'; 
+                dialogBox.style.borderColor = '#1976d2';
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+
+
