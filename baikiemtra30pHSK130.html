@@ -556,6 +556,766 @@
         }
 
         function startTest() {
+            // Xác thực xem học sinh đã nhập tên chưa (Thêm kiểm tra an toàn tránh lỗi đơ nút)
+            const nameInput = document.getElementById('studentNameInput');
+            if (nameInput) {
+                if (!nameInput.value.trim()) {
+                    const nameError = document.getElementById('nameError');
+                    if (nameError) nameError.classList.remove('hide');
+                    nameInput.classList.add('border-red-500');
+                    nameInput.focus();
+                    return;
+                }
+                
+                // Ẩn lỗi và lưu tên
+                const nameError = document.getElementById('nameError');
+                if (nameError) nameError.classList.add('hide');
+                nameInput.classList.remove('border-red-500');
+                currentStudentName = nameInput.value.trim();
+                
+                // Đưa tên lên Header và Bảng điểm
+                const headerName = document.getElementById('headerStudentName');
+                if (headerName) headerName.innerText = currentStudentName;
+                
+                const resultName = document.getElementById('resultStudentName');
+                if (resultName) resultName.innerHTML = `<i class="fa-solid fa-user mr-1"></i> ${currentStudentName}`;
+            }
+
+            initTTS();
+            document.getElementById('startModal').classList.add('hide');
+            document.getElementById('mainHeader').classList.remove('hide');
+            document.getElementById('testContent').classList.remove('hide');
+            
+            // Phase: Reading Time
+            phase = 'reading';
+            totalSeconds = 300; // 5 minutes
+            toggleInputs(true); // Disable all interactions
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                updateTimerDisplay();
+                if (totalSeconds <= 0) {
+                    if (phase === 'reading') {
+                        startTestingPhase();
+                    } else if (phase === 'testing') {
+                        clearInterval(timerInterval);
+                        autoSubmitted = true;
+                        submitTest();
+                    }
+                }
+            }, 1000);
+        }
+
+        function startTestingPhase() {
+            phase = 'testing';
+            totalSeconds = 1800; // 30 mins test
+            
+            toggleInputs(false); // Enable interactions
+            
+            // Update UI banner to Blue Test mode
+            const tc = document.getElementById('timerContainer');
+            tc.className = "bg-blue-50 text-blue-800 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-mono font-bold text-lg md:text-xl flex items-center gap-2 border border-blue-200 transition-colors duration-500";
+            document.getElementById('testStateText').innerText = "Làm bài:";
+            document.getElementById('progressBar').classList.replace('bg-yellow-500', 'bg-blue-500');
+            document.getElementById('skipReadingBtn').classList.add('hide');
+            
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+            
+            // Progress bar
+            const maxSecs = phase === 'reading' ? 300 : 1800;
+            const percent = (totalSeconds / maxSecs) * 100;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+
+            if (phase === 'testing' && totalSeconds < 300) { // last 5 mins of test
+                const tc = document.getElementById('timerContainer');
+                tc.classList.replace('bg-blue-50', 'bg-red-50');
+                tc.classList.replace('text-blue-800', 'text-red-600');
+                tc.classList.replace('border-blue-200', 'border-red-200');
+                document.getElementById('progressBar').classList.replace('bg-blue-500', 'bg-red-500');
+            }
+        }
+
+        // Unscramble Logic
+        function moveWord(btn) {
+            if(phase !== 'testing') return;
+            const group = btn.closest('.unscramble-group');
+            const available = group.querySelector('.available-words');
+            const selected = group.querySelector('.selected-words');
+            const hiddenInput = group.querySelector('input[type="hidden"]');
+
+            if (btn.parentElement === available) {
+                selected.appendChild(btn);
+            } else {
+                available.appendChild(btn);
+            }
+
+            // Update value using data-word
+            const words = Array.from(selected.children).map(el => el.dataset.word || el.innerText);
+            hiddenInput.value = words.join('');
+        }
+
+        function submitTest() {
+            if(phase === 'reading' || phase === 'done') return;
+            phase = 'done';
+            clearInterval(timerInterval);
+            stopAllAudio(); 
+            
+            // Khoá ngay lập tức toàn bộ UI
+            toggleInputs(true);
+
+            const form = document.getElementById('quizForm');
+            const formData = new FormData(form);
+            let score = 0;
+            const total = 200; // 120 (Nghe) + 35 (Đọc 1) + 45 (Đọc 2)
+
+            // Check answers and assign specific points
+            for (let [qId, correctAns] of Object.entries(answerKey)) {
+                let userAns = formData.get(qId) || "";
+                if (userAns.trim() === correctAns.trim()) {
+                    let qNum = parseInt(qId.substring(1));
+                    if (qNum >= 1 && qNum <= 17) {
+                        score += 10; // Phần Nghe: 10đ
+                    } else if (qNum >= 18 && qNum <= 22) {
+                        score += 7;  // Phần Đọc 1: 7đ
+                    } else if (qNum >= 23 && qNum <= 27) {
+                        score += 9;  // Phần Đọc 2: 9đ
+                    }
+                }
+            }
+
+            // Display Results in Modal
+            const percent = Math.round((score / total) * 100);
+            document.getElementById('scoreDisplay').innerText = `${score}/${total}`;
+            document.getElementById('percentageDisplay').innerText = `Tỷ lệ đúng: ${percent}%`;
+            
+            const iconWrap = document.getElementById('resultIcon');
+            if(percent >= 60) {
+                iconWrap.className = "w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100 text-green-500";
+                iconWrap.innerHTML = '<i class="fa-solid fa-check text-4xl md:text-5xl"></i>';
+            } else {
+                iconWrap.className = "w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-100 text-red-500";
+                iconWrap.innerHTML = '<i class="fa-solid fa-xmark text-4xl md:text-5xl"></i>';
+                document.getElementById('scoreDisplay').classList.replace('text-blue-600', 'text-red-600');
+            }
+
+            if(autoSubmitted) {
+                document.getElementById('resultModalTitle').innerText = "Hết giờ! Đã nộp bài tự động";
+                document.getElementById('resultModalTitle').classList.add('text-red-600');
+                document.getElementById('resultModalDesc').innerText = "Hệ thống đã tự động thu bài của bạn do hết thời gian làm bài.";
+            }
+
+            document.getElementById('resultModal').classList.remove('hide');
+        }
+
+        function promptScreenshot() {
+            document.getElementById('resultModal').classList.add('hide');
+            document.getElementById('screenshotConfirmModal').classList.remove('hide');
+        }
+
+        function cancelScreenshot() {
+            document.getElementById('screenshotConfirmModal').classList.add('hide');
+            document.getElementById('resultModal').classList.remove('hide');
+        }
+
+        function confirmScreenshot() {
+            document.getElementById('screenshotConfirmModal').classList.add('hide');
+            showReport();
+        }
+
+        let isReportGenerated = false;
+
+        function showReport() {
+            document.getElementById('resultModal').classList.add('hide');
+            
+            if (isReportGenerated) return; // Prevent duplicating feedback boxes if called again
+            isReportGenerated = true;
+
+            // Change the button inside result modal to "Back to report"
+            const viewReportBtn = document.getElementById('viewReportBtnModal');
+            viewReportBtn.innerHTML = '<i class="fa-solid fa-arrow-left mr-2"></i> Quay lại báo cáo';
+            viewReportBtn.onclick = function() {
+                document.getElementById('resultModal').classList.add('hide');
+            };
+
+            const form = document.getElementById('quizForm');
+            const formData = new FormData(form);
+
+            // Update UI Header for Report Mode
+            const tc = document.getElementById('timerContainer');
+            tc.className = "bg-green-50 text-green-800 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-mono font-bold text-lg md:text-xl flex items-center gap-2 border border-green-200";
+            document.getElementById('testStateText').innerText = "ĐIỂM SỐ:";
+            document.getElementById('timerDisplay').innerText = document.getElementById('scoreDisplay').innerText;
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressBar').className = "h-full bg-green-500 w-full";
+            
+            // Hide normal submit button, show report footer
+            document.getElementById('submitWrap').classList.add('hide');
+            document.getElementById('reportFooter').classList.remove('hide');
+
+            // Inject Feedback Boxes
+            for (let [qId, correctAns] of Object.entries(answerKey)) {
+                let userAns = formData.get(qId) || "";
+                let isCorrect = (userAns.trim() === correctAns.trim());
+                
+                let qBlock;
+                if (parseInt(qId.substring(1)) >= 23) {
+                    qBlock = document.querySelector(`div[data-id="${qId}"]`);
+                } else {
+                    let el = document.querySelector(`[name="${qId}"]`);
+                    if (el) qBlock = el.closest('.q-block');
+                }
+
+                if (qBlock) {
+                    let feedbackHtml = `
+                        <div class="mt-4 p-3 md:p-4 rounded-xl ${isCorrect ? 'bg-green-50 border-2 border-green-400' : 'bg-red-50 border-2 border-red-400'} shadow-sm font-sans text-sm md:text-base">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fa-solid ${isCorrect ? 'fa-circle-check text-green-500' : 'fa-circle-xmark text-red-500'} text-lg md:text-xl"></i>
+                                <span class="font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}">${isCorrect ? 'Tuyệt vời, chính xác!' : 'Rất tiếc, sai rồi!'}</span>
+                            </div>
+                            <div class="text-gray-700 bg-white p-3 rounded border border-gray-100">
+                                <p><strong>Lựa chọn của bạn:</strong> <span class="${isCorrect ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}">${userAns || '[Chưa trả lời]'}</span></p>
+                                ${!isCorrect ? `<p class="mt-2 border-t pt-2"><strong>Đáp án đúng:</strong> <span class="text-green-600 font-bold">${correctAns}</span></p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    qBlock.insertAdjacentHTML('beforeend', feedbackHtml);
+                }
+            }
+            
+            // Scroll to top to view report from beginning
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+        }
+        .select-blank:focus { outline: none; border-color: #3b82f6; }
+        .select-blank:disabled { background-color: #e2e8f0; cursor: not-allowed; opacity: 0.7; }
+        
+        /* Ruby Pinyin styling & Responsive fixes */
+        ruby { ruby-align: center; line-height: 2; }
+        rt { font-size: 0.7em; color: #6b7280; font-family: sans-serif; font-weight: normal; }
+        
+        @media (max-width: 768px) {
+            rt { font-size: 0.65em; }
+            ruby { line-height: 2.2; } /* Khoảng cách rộng hơn trên di động để Pinyin không dính vào dòng trên */
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased pb-20">
+
+    <!-- Start Modal -->
+    <div id="startModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-md w-full text-center">
+            <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-graduation-cap text-3xl md:text-4xl text-blue-600"></i>
+            </div>
+            <h1 class="text-xl md:text-2xl font-bold mb-2">ĐỀ KIỂM TRA HSK 1</h1>
+            <p class="text-gray-600 mb-6 text-sm md:text-base">Chuẩn 3.0 • Đọc đề: 5 phút | Làm bài: 30 phút</p>
+            <ul class="text-left text-xs md:text-sm text-gray-600 mb-6 space-y-3 bg-gray-50 p-4 rounded-lg">
+                <li><i class="fa-solid fa-eye text-yellow-500 w-5"></i> <strong>Đọc đề (5 phút):</strong> Học sinh chỉ được phép đọc lướt các câu hỏi, chưa được tương tác hay nghe.</li>
+                <li><i class="fa-solid fa-clock text-blue-500 w-5"></i> <strong>Làm bài (30 phút):</strong> Hệ thống tự mở tính năng và <strong>tự động nộp bài thu điểm</strong> khi hết giờ.</li>
+            </ul>
+            
+            <!-- Phần điền tên -->
+            <div class="mb-6">
+                <label for="studentNameInput" class="block text-left text-sm md:text-base font-bold text-gray-700 mb-2">Họ và tên thí sinh <span class="text-red-500">*</span></label>
+                <input type="text" id="studentNameInput" placeholder="Nhập tên của bạn..." class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 outline-none transition-colors text-base md:text-lg" required>
+                <p id="nameError" class="text-red-500 text-sm text-left mt-1 hide"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập tên trước khi bắt đầu!</p>
+            </div>
+
+            <button onclick="startTest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors text-base md:text-lg shadow-lg shadow-blue-200">
+                BẮT ĐẦU ĐỌC ĐỀ
+            </button>
+        </div>
+    </div>
+
+    <!-- Header & Timer -->
+    <header class="sticky-header sticky top-0 z-40 px-3 md:px-4 py-2 md:py-3 shadow-sm hide" id="mainHeader">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="font-bold text-base md:text-lg hidden sm:flex items-center text-blue-700">
+                HSK 1 (3.0) TEST
+                <span id="headerStudentName" class="text-gray-500 font-normal ml-3 text-sm border-l-2 border-gray-300 pl-3"></span>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4 w-full sm:w-auto justify-center sm:justify-end">
+                <div id="timerContainer" class="bg-yellow-50 text-yellow-800 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-mono font-bold text-lg md:text-xl flex items-center gap-2 border border-yellow-200 transition-colors duration-500">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="testStateText" class="text-xs md:text-sm font-sans uppercase hidden md:inline font-bold">Đọc đề:</span>
+                    <span id="timerDisplay">05:00</span>
+                    <button id="skipReadingBtn" type="button" onclick="startTestingPhase()" class="text-xs bg-yellow-200 hover:bg-yellow-300 text-yellow-800 px-2 py-1 rounded ml-1 md:ml-2 font-sans font-bold transition-colors shadow-sm">Bỏ qua</button>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-4xl mx-auto mt-2 h-1 md:h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-yellow-500 transition-all duration-1000 w-full"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-3 md:px-4 py-6 md:py-8 hide" id="testContent">
+        <form id="quizForm" onsubmit="event.preventDefault(); submitTest();">
+            
+            <!-- PHẦN 1: NGHE HIỂU -->
+            <div class="mb-8 md:mb-10">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2 border-b-2 border-blue-500 pb-2">PHẦN 1: NGHE HIỂU (听力)</h2>
+                <p class="text-gray-500 text-xs md:text-sm mb-4 md:mb-6"><i class="fa-solid fa-circle-info mr-1"></i> Bấm vào nút play để nghe âm thanh.</p>
+
+                <!-- Bài 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-8 mb-6">
+                    <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 text-blue-700">Bài 1: Nghe âm thanh và chọn phiên âm chính xác (6 Câu)</h3>
+                    <p class="text-xs md:text-sm text-gray-500 mb-4">*Lưu ý: Không hiển thị pinyin ở phần thi này để đảm bảo tính khách quan.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" id="part1-container">
+                        <!-- Questions 1-6 injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Bài 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-8 mb-6">
+                    <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 text-blue-700">Bài 2: Nghe đoạn hội thoại ngắn và chọn đáp án đúng (3 Câu)</h3>
+                    <button type="button" id="btn-b2" onclick="playTrack('B2', 'btn-b2')" class="audio-btn w-full md:w-auto bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 py-2.5 px-4 md:py-3 md:px-6 rounded-xl font-bold mb-6 flex items-center justify-center gap-2 transition-all text-sm md:text-base">
+                        <i class="fa-solid fa-play-circle text-lg md:text-xl"></i> Nghe Audio Bài 2 (Còn 2 lần)
+                    </button>
+                    
+                    <div class="space-y-6">
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">12. <ruby>他<rt>tā</rt></ruby><ruby>想<rt>xiǎng</rt></ruby><ruby>去<rt>qù</rt></ruby>（ ）<ruby>吃<rt>chī</rt></ruby><ruby>饭<rt>fàn</rt></ruby>。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="space-y-2 pl-2">
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q12" value="A"> A. <ruby>西<rt>xī</rt></ruby><ruby>安<rt>ān</rt></ruby><ruby>饭<rt>fàn</rt></ruby><ruby>店<rt>diàn</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q12" value="B"> B. <ruby>学<rt>xué</rt></ruby><ruby>校<rt>xiào</rt></ruby><ruby>里<rt>lǐ</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q12" value="C"> C. <ruby>北<rt>běi</rt></ruby><ruby>京<rt>jīng</rt></ruby><ruby>饭<rt>fàn</rt></ruby><ruby>店<rt>diàn</rt></ruby></label>
+                            </div>
+                        </div>
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">13. <ruby>她<rt>tā</rt></ruby><ruby>想<rt>xiǎng</rt></ruby><ruby>吃<rt>chī</rt></ruby>（ ）。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="space-y-2 pl-2">
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q13" value="A"> A. <ruby>包<rt>bāo</rt></ruby><ruby>子<rt>zi</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q13" value="B"> B. <ruby>米<rt>mǐ</rt></ruby><ruby>饭<rt>fàn</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q13" value="C"> C. <ruby>面<rt>miàn</rt></ruby><ruby>条<rt>tiáo</rt></ruby></label>
+                            </div>
+                        </div>
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">14. <ruby>他<rt>tā</rt></ruby><ruby>们<rt>men</rt></ruby>（ ）<ruby>去<rt>qù</rt></ruby>。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="space-y-2 pl-2">
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q14" value="A"> A. <ruby>坐<rt>zuò</rt></ruby><ruby>车<rt>chē</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q14" value="B"> B. <ruby>打<rt>dǎ</rt></ruby><ruby>车<rt>chē</rt></ruby></label>
+                                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q14" value="C"> C. <ruby>坐<rt>zuò</rt></ruby><ruby>出<rt>chū</rt></ruby><ruby>租<rt>zū</rt></ruby><ruby>车<rt>chē</rt></ruby></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bài 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-8 mb-6">
+                    <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 text-blue-700">Bài 3: Nghe đoạn hội thoại và chọn Đúng/Sai (3 Câu)</h3>
+                    <button type="button" id="btn-b3" onclick="playTrack('B3', 'btn-b3')" class="audio-btn w-full md:w-auto bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 py-2.5 px-4 md:py-3 md:px-6 rounded-xl font-bold mb-6 flex items-center justify-center gap-2 transition-all text-sm md:text-base">
+                        <i class="fa-solid fa-play-circle text-lg md:text-xl"></i> Nghe Audio Bài 3 (Còn 2 lần)
+                    </button>
+
+                    <div class="space-y-6">
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">15. <ruby>这<rt>zhè</rt></ruby><ruby>家<rt>jiā</rt></ruby><ruby>商<rt>shāng</rt></ruby><ruby>店<rt>diàn</rt></ruby><ruby>衣<rt>yī</rt></ruby><ruby>服<rt>yīfu</rt></ruby><ruby>不<rt>bù</rt></ruby><ruby>多<rt>duō</rt></ruby>。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="flex gap-4 md:gap-6 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q15" value="A"> A. Đúng</label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q15" value="B"> B. Sai</label>
+                            </div>
+                        </div>
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">16. <ruby>这<rt>zhè</rt></ruby><ruby>家<rt>jiā</rt></ruby><ruby>商<rt>shāng</rt></ruby><ruby>店<rt>diàn</rt></ruby><ruby>衣<rt>yī</rt></ruby><ruby>服<rt>yīfu</rt></ruby><ruby>也<rt>yě</rt></ruby><ruby>不<rt>bú</rt></ruby><ruby>贵<rt>guì</rt></ruby>。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="flex gap-4 md:gap-6 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q16" value="A"> A. Đúng</label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q16" value="B"> B. Sai</label>
+                            </div>
+                        </div>
+                        <div class="q-block text-base md:text-lg">
+                            <p class="font-semibold mb-2">17. <ruby>男<rt>nán</rt></ruby><ruby>孩<rt>hái</rt></ruby><ruby>子<rt>zi</rt></ruby><ruby>的<rt>de</rt></ruby><ruby>衣<rt>yī</rt></ruby><ruby>服<rt>yīfu</rt></ruby><ruby>在<rt>zài</rt></ruby><ruby>那<rt>nà</rt></ruby><ruby>儿<rt>r</rt></ruby>。 <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">10 điểm</span></p>
+                            <div class="flex gap-4 md:gap-6 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q17" value="A"> A. Đúng</label>
+                                <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded"><input type="radio" name="q17" value="B"> B. Sai</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHẦN 2: ĐỌC HIỂU & NGỮ PHÁP -->
+            <div class="mb-8 md:mb-10">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2 border-b-2 border-blue-500 pb-2">PHẦN 2: ĐỌC HIỂU & NGỮ PHÁP (阅读)</h2>
+                
+                <!-- Bài 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-8 mb-6">
+                    <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 text-blue-700">Bài 1: Điền từ vào chỗ trống (5 Câu)</h3>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4 mb-6 flex flex-wrap gap-2 md:gap-4 justify-center text-lg md:text-xl font-bold text-yellow-800 leading-loose">
+                        <span><ruby>坐<rt>zuò</rt></ruby></span> | 
+                        <span><ruby>书<rt>shū</rt></ruby><ruby>店<rt>diàn</rt></ruby></span> | 
+                        <span><ruby>好<rt>hǎo</rt></ruby><ruby>听<rt>tīng</rt></ruby></span> | 
+                        <span><ruby>东<rt>dōng</rt></ruby><ruby>西<rt>xi</rt></ruby></span> | 
+                        <span><ruby>今<rt>jīn</rt></ruby><ruby>天<rt>tiān</rt></ruby><ruby>上<rt>shàng</rt></ruby><ruby>午<rt>wǔ</rt></ruby></span>
+                    </div>
+
+                    <div class="space-y-6 text-base md:text-xl">
+                        <div class="q-block">
+                            18. <span class="mr-1 md:mr-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">7 điểm</span> <ruby>我<rt>wǒ</rt></ruby><ruby>们<rt>men</rt></ruby> 
+                            <select name="q18" class="select-blank mx-1 text-sm md:text-base">
+                                <option value="">--- Chọn ---</option>
+                                <option value="坐">坐 (zuò)</option>
+                                <option value="书店">书店 (shūdiàn)</option>
+                                <option value="好听">好听 (hǎotīng)</option>
+                                <option value="东西">东西 (dōngxi)</option>
+                                <option value="今天上午">今天上午 (jīntiān shàngwǔ)</option>
+                            </select> 
+                            <ruby>出<rt>chū</rt></ruby><ruby>租<rt>zū</rt></ruby><ruby>车<rt>chē</rt></ruby><ruby>去<rt>qù</rt></ruby><ruby>西<rt>xī</rt></ruby><ruby>安<rt>ān</rt></ruby><ruby>饭<rt>fàn</rt></ruby><ruby>店<rt>diàn</rt></ruby><ruby>吃<rt>chī</rt></ruby><ruby>晚<rt>wǎn</rt></ruby><ruby>饭<rt>fàn</rt></ruby>。
+                        </div>
+                        <div class="q-block">
+                            19. <span class="mr-1 md:mr-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">7 điểm</span> <ruby>我<rt>wǒ</rt></ruby><ruby>去<rt>qù</rt></ruby> 
+                            <select name="q19" class="select-blank mx-1 text-sm md:text-base">
+                                <option value="">--- Chọn ---</option>
+                                <option value="坐">坐 (zuò)</option>
+                                <option value="书店">书店 (shūdiàn)</option>
+                                <option value="好听">好听 (hǎotīng)</option>
+                                <option value="东西">东西 (dōngxi)</option>
+                                <option value="今天上午">今天上午 (jīntiān shàngwǔ)</option>
+                            </select>
+                            ，<ruby>你<rt>nǐ</rt></ruby><ruby>去<rt>qù</rt></ruby><ruby>吗<rt>ma</rt></ruby>？
+                        </div>
+                        <div class="q-block">
+                            20. <span class="mr-1 md:mr-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">7 điểm</span> <ruby>你<rt>nǐ</rt></ruby><ruby>唱<rt>chàng</rt></ruby><ruby>歌<rt>gē</rt></ruby><ruby>很<rt>hěn</rt></ruby> 
+                            <select name="q20" class="select-blank mx-1 text-sm md:text-base">
+                                <option value="">--- Chọn ---</option>
+                                <option value="坐">坐 (zuò)</option>
+                                <option value="书店">书店 (shūdiàn)</option>
+                                <option value="好听">好听 (hǎotīng)</option>
+                                <option value="东西">东西 (dōngxi)</option>
+                                <option value="今天上午">今天上午 (jīntiān shàngwǔ)</option>
+                            </select>
+                            。
+                        </div>
+                        <div class="q-block">
+                            21. <span class="mr-1 md:mr-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">7 điểm</span> <ruby>我<rt>wǒ</rt></ruby><ruby>想<rt>xiǎng</rt></ruby><ruby>去<rt>qù</rt></ruby><ruby>超<rt>chāo</rt></ruby><ruby>市<rt>shì</rt></ruby><ruby>买<rt>mǎi</rt></ruby> 
+                            <select name="q21" class="select-blank mx-1 text-sm md:text-base">
+                                <option value="">--- Chọn ---</option>
+                                <option value="坐">坐 (zuò)</option>
+                                <option value="书店">书店 (shūdiàn)</option>
+                                <option value="好听">好听 (hǎotīng)</option>
+                                <option value="东西">东西 (dōngxi)</option>
+                                <option value="今天上午">今天上午 (jīntiān shàngwǔ)</option>
+                            </select>
+                            。
+                        </div>
+                        <div class="q-block">
+                            22. <span class="mr-1 md:mr-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">7 điểm</span> <ruby>他<rt>tā</rt></ruby> 
+                            <select name="q22" class="select-blank mx-1 text-sm md:text-base">
+                                <option value="">--- Chọn ---</option>
+                                <option value="坐">坐 (zuò)</option>
+                                <option value="书店">书店 (shūdiàn)</option>
+                                <option value="好听">好听 (hǎotīng)</option>
+                                <option value="东西">东西 (dōngxi)</option>
+                                <option value="今天上午">今天上午 (jīntiān shàngwǔ)</option>
+                            </select>
+                            <ruby>在<rt>zài</rt></ruby><ruby>学<rt>xué</rt></ruby><ruby>校<rt>xiào</rt></ruby><ruby>学<rt>xué</rt></ruby><ruby>习<rt>xí</rt></ruby>。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bài 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-8 mb-6">
+                    <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 text-blue-700">Bài 2: Sắp xếp các từ thành câu hoàn chỉnh (5 Câu)</h3>
+                    <p class="text-xs md:text-sm text-gray-500 mb-6"><i class="fa-solid fa-hand-pointer mr-1"></i> Chạm/Click vào các từ màu xanh bên dưới để đưa lên câu trả lời.</p>
+
+                    <div class="space-y-8 md:space-y-10" id="part2-2-container">
+                        <!-- Q23 -->
+                        <div class="unscramble-group" data-id="q23">
+                            <p class="font-semibold mb-3 md:mb-4 text-gray-700 text-lg md:text-xl"><ruby>23. 他<rt>tā</rt></ruby><ruby>明<rt>míng</rt></ruby><ruby>天<rt>tiān</rt></ruby><ruby>下<rt>xià</rt></ruby><ruby>午<rt>wǔ</rt></ruby> / <ruby>超<rt>chāo</rt></ruby><ruby>市<rt>shì</rt></ruby> / <ruby>还<rt>hái</rt></ruby><ruby>去<rt>qù</rt></ruby> <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">9 điểm</span></p>
+                            <div class="selected-words min-h-[3.5rem] md:min-h-[4rem] border-b-2 border-blue-300 pb-2 mb-4 flex flex-wrap gap-2 items-end"></div>
+                            <div class="available-words flex flex-wrap gap-2 md:gap-3">
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="他明天下午"><ruby>他<rt>tā</rt></ruby><ruby>明<rt>míng</rt></ruby><ruby>天<rt>tiān</rt></ruby><ruby>下<rt>xià</rt></ruby><ruby>午<rt>wǔ</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="还去"><ruby>还<rt>hái</rt></ruby><ruby>去<rt>qù</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="超市"><ruby>超<rt>chāo</rt></ruby><ruby>市<rt>shì</rt></ruby></div>
+                            </div>
+                            <input type="hidden" name="q23" value="">
+                        </div>
+
+                        <!-- Q24 -->
+                        <div class="unscramble-group" data-id="q24">
+                            <p class="font-semibold mb-3 md:mb-4 text-gray-700 text-lg md:text-xl"><ruby>24. 一<rt>yì</rt></ruby><ruby>家<rt>jiā</rt></ruby> / <ruby>电<rt>diàn</rt></ruby><ruby>影<rt>yǐng</rt></ruby><ruby>院<rt>yuàn</rt></ruby> / <ruby>学<rt>xué</rt></ruby><ruby>校<rt>xiào</rt></ruby><ruby>前<rt>qián</rt></ruby><ruby>边<rt>bian</rt></ruby> / <ruby>有<rt>yǒu</rt></ruby> <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">9 điểm</span></p>
+                            <div class="selected-words min-h-[3.5rem] md:min-h-[4rem] border-b-2 border-blue-300 pb-2 mb-4 flex flex-wrap gap-2 items-end"></div>
+                            <div class="available-words flex flex-wrap gap-2 md:gap-3">
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="学校前边"><ruby>学<rt>xué</rt></ruby><ruby>校<rt>xiào</rt></ruby><ruby>前<rt>qián</rt></ruby><ruby>边<rt>bian</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="有"><ruby>有<rt>yǒu</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="一家"><ruby>一<rt>yì</rt></ruby><ruby>家<rt>jiā</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="电影院"><ruby>电<rt>diàn</rt></ruby><ruby>影<rt>yǐng</rt></ruby><ruby>院<rt>yuàn</rt></ruby></div>
+                            </div>
+                            <input type="hidden" name="q24" value="">
+                        </div>
+
+                        <!-- Q25 -->
+                        <div class="unscramble-group" data-id="q25">
+                            <p class="font-semibold mb-3 md:mb-4 text-gray-700 text-lg md:text-xl"><ruby>25. 晚<rt>wǎn</rt></ruby><ruby>上<rt>shang</rt></ruby> / <ruby>和<rt>hé</rt></ruby><ruby>朋<rt>péng</rt></ruby><ruby>友<rt>you</rt></ruby> / <ruby>唱<rt>chàng</rt></ruby><ruby>歌<rt>gē</rt></ruby> / <ruby>去<rt>qù</rt></ruby><ruby>外<rt>wài</rt></ruby><ruby>边<rt>bian</rt></ruby> <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">9 điểm</span></p>
+                            <div class="selected-words min-h-[3.5rem] md:min-h-[4rem] border-b-2 border-blue-300 pb-2 mb-4 flex flex-wrap gap-2 items-end"></div>
+                            <div class="available-words flex flex-wrap gap-2 md:gap-3">
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="晚上"><ruby>晚<rt>wǎn</rt></ruby><ruby>上<rt>shang</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="和朋友"><ruby>和<rt>hé</rt></ruby><ruby>朋<rt>péng</rt></ruby><ruby>友<rt>you</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="去外边"><ruby>去<rt>qù</rt></ruby><ruby>外<rt>wài</rt></ruby><ruby>边<rt>bian</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="唱歌"><ruby>唱<rt>chàng</rt></ruby><ruby>歌<rt>gē</rt></ruby></div>
+                            </div>
+                            <input type="hidden" name="q25" value="">
+                        </div>
+
+                        <!-- Q26 -->
+                        <div class="unscramble-group" data-id="q26">
+                            <p class="font-semibold mb-3 md:mb-4 text-gray-700 text-lg md:text-xl"><ruby>26. 她<rt>tā</rt></ruby> / <ruby>商<rt>shāng</rt></ruby><ruby>店<rt>diàn</rt></ruby> / <ruby>怎<rt>zěn</rt></ruby><ruby>么<rt>me</rt></ruby><ruby>去<rt>qù</rt></ruby>？ <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">9 điểm</span></p>
+                            <div class="selected-words min-h-[3.5rem] md:min-h-[4rem] border-b-2 border-blue-300 pb-2 mb-4 flex flex-wrap gap-2 items-end"></div>
+                            <div class="available-words flex flex-wrap gap-2 md:gap-3">
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="她"><ruby>她<rt>tā</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="怎么去"><ruby>怎<rt>zěn</rt></ruby><ruby>么<rt>me</rt></ruby><ruby>去<rt>qù</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="商店"><ruby>商<rt>shāng</rt></ruby><ruby>店<rt>diàn</rt></ruby></div>
+                            </div>
+                            <input type="hidden" name="q26" value="">
+                        </div>
+
+                        <!-- Q27 -->
+                        <div class="unscramble-group" data-id="q27">
+                            <p class="font-semibold mb-3 md:mb-4 text-gray-700 text-lg md:text-xl"><ruby>27. 你<rt>nǐ</rt></ruby><ruby>妈<rt>mā</rt></ruby><ruby>妈<rt>ma</rt></ruby> / <ruby>手<rt>shǒu</rt></ruby><ruby>机<rt>jī</rt></ruby><ruby>号<rt>hào</rt></ruby> / <ruby>的<rt>de</rt></ruby> / <ruby>是<rt>shì</rt></ruby><ruby>多<rt>duō</rt></ruby><ruby>少<rt>shao</rt></ruby>？ <span class="ml-1 md:ml-2 text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-1">9 điểm</span></p>
+                            <div class="selected-words min-h-[3.5rem] md:min-h-[4rem] border-b-2 border-blue-300 pb-2 mb-4 flex flex-wrap gap-2 items-end"></div>
+                            <div class="available-words flex flex-wrap gap-2 md:gap-3">
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="你妈妈"><ruby>你<rt>nǐ</rt></ruby><ruby>妈<rt>mā</rt></ruby><ruby>妈<rt>ma</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="的"><ruby>的<rt>de</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="手机号"><ruby>手<rt>shǒu</rt></ruby><ruby>机<rt>jī</rt></ruby><ruby>号<rt>hào</rt></ruby></div>
+                                <div class="word-pill bg-blue-100 text-blue-800 px-3 py-1 md:px-4 md:pt-1 md:pb-2 rounded-lg cursor-pointer shadow-sm text-lg md:text-xl" onclick="moveWord(this)" data-word="是多少"><ruby>是<rt>shì</rt></ruby><ruby>多<rt>duō</rt></ruby><ruby>少<rt>shao</rt></ruby></div>
+                            </div>
+                            <input type="hidden" name="q27" value="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit trigger (bottom) -->
+            <div class="text-center pb-8 md:pb-10" id="submitWrap">
+                <button type="submit" id="submitBtn" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-6 md:px-12 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
+                    HOÀN THÀNH BÀI THI
+                </button>
+            </div>
+            
+            <!-- Report Footer Actions -->
+            <div id="reportFooter" class="text-center pb-10 hide">
+                <p class="text-gray-500 font-bold mb-4 text-sm md:text-base">Bài thi chỉ được thực hiện một lần.</p>
+                <button type="button" onclick="document.getElementById('resultModal').classList.remove('hide')" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white text-base md:text-lg font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-1">
+                    <i class="fa-solid fa-star mr-2"></i> XEM LẠI ĐIỂM SỐ
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm p-4 hide">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-md w-full text-center transform transition-all scale-100">
+            <div id="resultIcon" class="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100">
+                <i class="fa-solid fa-check text-4xl md:text-5xl text-green-500"></i>
+            </div>
+            <h2 id="resultModalTitle" class="text-2xl md:text-3xl font-bold mb-2">Đã nộp bài!</h2>
+            <p id="resultModalDesc" class="text-gray-500 text-sm md:text-base mb-6">Bạn đã hoàn thành bài kiểm tra HSK1.</p>
+            
+            <div class="bg-gray-50 rounded-xl p-4 md:p-6 mb-6 border border-gray-100 relative">
+                <!-- Hiển thị tên thí sinh trên bảng điểm -->
+                <div class="absolute top-3 left-1/2 transform -translate-x-1/2 md:-translate-x-0 md:left-auto md:right-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs md:text-sm font-bold truncate max-w-full" id="resultStudentName">Thí sinh: </div>
+                
+                <p class="text-xs md:text-sm text-gray-500 uppercase tracking-wide font-bold mb-1 mt-4 md:mt-0">Tổng điểm</p>
+                <p class="text-4xl md:text-5xl font-black text-blue-600 mb-2" id="scoreDisplay">0/200</p>
+                <p class="text-sm md:text-base text-gray-600 font-medium bg-white px-3 md:px-4 py-1 rounded-full inline-block shadow-sm" id="percentageDisplay">0%</p>
+            </div>
+
+            <div class="space-y-3">
+                <button type="button" id="viewReportBtnModal" onclick="promptScreenshot()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors text-sm md:text-base">
+                    <i class="fa-solid fa-file-invoice mr-2"></i> Xem báo cáo chi tiết
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Confirmation Modal -->
+    <div id="screenshotConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm p-4 hide">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-md w-full text-center transform transition-all scale-100">
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-yellow-100 text-yellow-600">
+                <i class="fa-solid fa-camera text-3xl md:text-4xl"></i>
+            </div>
+            <h2 class="text-xl md:text-2xl font-bold mb-2">Xác nhận chụp màn hình</h2>
+            <p class="text-gray-600 text-sm md:text-base mb-6">Bạn bắt buộc phải <strong>chụp ảnh màn hình điểm số</strong> để báo cáo kết quả. Bạn đã chụp màn hình chưa?</p>
+            
+            <div class="space-y-3">
+                <button type="button" onclick="confirmScreenshot()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-colors text-sm md:text-base">
+                    <i class="fa-solid fa-check mr-2"></i> Tôi đã chụp, Xem báo cáo
+                </button>
+                <button type="button" onclick="cancelScreenshot()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors text-sm md:text-base">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Quay lại để chụp ảnh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data for Part 1 (Questions 1-6)
+        const part1Data = [
+            { id: 1, text: "工作", opts: ["gōngzhuò", "gōngzuò", "gǒngzuò"], correct: "B" },
+            { id: 2, text: "公司", opts: ["gōngshī", "gòngsī", "gōngsī"], correct: "C" },
+            { id: 3, text: "好吃", opts: ["hǎochī", "háochī", "hǎocī"], correct: "A" },
+            { id: 4, text: "看见", opts: ["kàjiàn", "kànjiàn", "kànjiān"], correct: "B" },
+            { id: 5, text: "那些", opts: ["nàxiē", "nǎxiē", "nàxiě"], correct: "A" },
+            { id: 6, text: "水果", opts: ["shuīguǒ", "shuíguǒ", "shuǐguǒ"], correct: "C" }
+        ];
+
+        // Answer Key
+        const answerKey = {
+            q1: "B", q2: "C", q3: "A", q4: "B", q5: "A", q6: "C",
+            q12: "A", q13: "A", q14: "C",
+            q15: "B", q16: "A", q17: "A",
+            q18: "坐", q19: "书店", q20: "好听", q21: "东西", q22: "今天上午",
+            q23: "他明天下午还去超市",
+            q24: "学校前边有一家电影院", 
+            q25: "晚上和朋友去外边唱歌",
+            q26: "她怎么去商店",
+            q27: "你妈妈的手机号是多少"
+        };
+
+        // Render Part 1 DOM
+        const p1Container = document.getElementById('part1-container');
+        part1Data.forEach(q => {
+            const html = `
+                <div class="q-block flex flex-col justify-between border border-gray-100 bg-gray-50 p-3 md:p-4 rounded-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-bold text-gray-700 text-base md:text-lg">Câu ${q.id} <span class="text-xs md:text-sm font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded relative -top-0.5 ml-1">10 điểm</span>: <span class="text-xl md:text-2xl">${q.text}</span></span>
+                        <button type="button" data-plays="2" onclick="playAudio('${q.text}', this)" class="audio-btn bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 md:px-4 md:py-2 rounded-full font-semibold text-xs md:text-sm flex items-center gap-1 md:gap-2">
+                            <i class="fa-solid fa-volume-up"></i> Nghe (2)
+                        </button>
+                    </div>
+                    <div class="space-y-2 mt-2 text-base md:text-lg">
+                        <label class="flex items-center gap-2 md:gap-3 cursor-pointer"><input type="radio" name="q${q.id}" value="A"> A. ${q.opts[0]}</label>
+                        <label class="flex items-center gap-2 md:gap-3 cursor-pointer"><input type="radio" name="q${q.id}" value="B"> B. ${q.opts[1]}</label>
+                        <label class="flex items-center gap-2 md:gap-3 cursor-pointer"><input type="radio" name="q${q.id}" value="C"> C. ${q.opts[2]}</label>
+                    </div>
+                </div>
+            `;
+            p1Container.insertAdjacentHTML('beforeend', html);
+        });
+
+        // Test State
+        let timerInterval;
+        let totalSeconds = 300; // 5 mins reading time initially
+        let phase = 'idle'; // idle, reading, testing, done
+        let autoSubmitted = false;
+        let currentStudentName = ""; // Tên học sinh
+
+        // Audio Objects & Trackers
+        const trackB2 = new Audio("https://res.cloudinary.com/dlgei4hi0/video/upload/v1776857036/6-5_yeefin.mp3");
+        const trackB3 = new Audio("https://res.cloudinary.com/dlgei4hi0/video/upload/v1776857038/10-5_js7adx.mp3");
+        let countB2 = 2;
+        let countB3 = 2;
+
+        function stopAllAudio() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            trackB2.pause(); trackB2.currentTime = 0;
+            trackB3.pause(); trackB3.currentTime = 0;
+        }
+
+        function initTTS() {
+            if ('speechSynthesis' in window) {
+                const msg = new SpeechSynthesisUtterance('');
+                msg.volume = 0;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        function playAudio(text, btn) {
+            if(phase !== 'testing') return;
+            
+            let plays = parseInt(btn.getAttribute('data-plays'));
+            if (plays <= 0) return;
+
+            stopAllAudio();
+            
+            if (!('speechSynthesis' in window)) {
+                alert("Trình duyệt của bạn không hỗ trợ phát âm thanh TTS.");
+                return;
+            }
+            
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-CN';
+            msg.rate = 0.9;
+            
+            plays--;
+            btn.setAttribute('data-plays', plays);
+            btn.innerHTML = `<i class="fa-solid fa-volume-up"></i> Nghe (${plays})`;
+            
+            if(plays === 0) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            window.speechSynthesis.speak(msg);
+        }
+
+        function playTrack(trackId, btnId) {
+            if(phase !== 'testing') return;
+            
+            const btn = document.getElementById(btnId);
+            stopAllAudio();
+
+            if (trackId === 'B2') {
+                if (countB2 <= 0) return;
+                countB2--;
+                btn.innerHTML = `<i class="fa-solid fa-play-circle text-lg md:text-xl"></i> Nghe Audio Bài 2 (Còn ${countB2} lần)`;
+                if (countB2 === 0) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                trackB2.play();
+            } else if (trackId === 'B3') {
+                if (countB3 <= 0) return;
+                countB3--;
+                btn.innerHTML = `<i class="fa-solid fa-play-circle text-lg md:text-xl"></i> Nghe Audio Bài 3 (Còn ${countB3} lần)`;
+                if (countB3 === 0) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                trackB3.play();
+            }
+        }
+
+        function toggleInputs(disabled) {
+            document.querySelectorAll('input[type="radio"], select').forEach(el => el.disabled = disabled);
+            document.querySelectorAll('.audio-btn').forEach(btn => {
+                let plays = 2; // Default
+                if (btn.hasAttribute('data-plays')) plays = parseInt(btn.getAttribute('data-plays'));
+                if (btn.id === 'btn-b2') plays = countB2;
+                if (btn.id === 'btn-b3') plays = countB3;
+
+                if(disabled || plays === 0) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+            document.querySelectorAll('.word-pill').forEach(wp => {
+                if(disabled) wp.classList.add('disabled');
+                else wp.classList.remove('disabled');
+            });
+            document.getElementById('submitBtn').disabled = disabled;
+            if(disabled) document.getElementById('submitBtn').classList.add('opacity-50', 'pointer-events-none');
+            else document.getElementById('submitBtn').classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        function startTest() {
             // Xác thực xem học sinh đã nhập tên chưa
             const nameInput = document.getElementById('studentNameInput');
             if (!nameInput.value.trim()) {
