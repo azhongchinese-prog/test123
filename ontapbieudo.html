@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cẩm Nang Viết HSK 7-9: Phân Tích Biểu Đồ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            scroll-behavior: smooth;
+        }
+
+        .cn-text {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+            font-size: 1.15rem;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .cn-title {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+            font-weight: bold;
+        }
+
+        .pinyin {
+            font-family: 'Arial', sans-serif;
+            font-size: 0.85rem;
+            color: #64748b;
+            font-style: italic;
+            display: block;
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.02em;
+        }
+
+        .highlight-blue { color: #2563eb; font-weight: 600; }
+        .highlight-red { color: #dc2626; font-weight: 600; }
+        .highlight-green { color: #16a34a; font-weight: 600; }
+        .highlight-purple { color: #9333ea; font-weight: 600; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .copy-btn { transition: all 0.2s ease-in-out; }
+        .copy-btn:hover { transform: scale(1.05); }
+        .copy-success { background-color: #10b981 !important; color: white !important; }
+        
+        /* Smooth scrolling padding for sticky header */
+        section { scroll-margin-top: 5.5rem; }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="fas fa-graduation-cap text-blue-400 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-wide hidden sm:block">HSK 7-9 Master</span>
+                    <span class="font-bold text-xl tracking-wide sm:hidden">HSK 7-9</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <nav class="hidden lg:flex space-x-1 overflow-x-auto pb-1 items-center">
+                    <a href="#section-strategy" class="nav-link active bg-slate-800 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-blue-500 whitespace-nowrap">1. Chiến Lược</a>
+                    <a href="#section-logic-flow" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">2. Logic Flow</a>
+                    <a href="#section-intro" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">3. Mở Bài</a>
+                    <a href="#section-body" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">4. Thân Bài</a>
+                    <a href="#section-outro" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">5. Kết Bài</a>
+                    <a href="#section-template" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">6. Bộ Khung</a>
+                    <a href="#section-vocab-press" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">7. Từ Vựng & Báo Chí</a>
+                    <a href="#section-macro" class="nav-link text-slate-300 hover:bg-slate-800 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors border-b-2 border-transparent whitespace-nowrap">8. Chủ Điểm</a>
+                </nav>
+
+                <!-- Mobile menu button -->
+                <div class="lg:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-slate-300 hover:text-white focus:outline-none p-2">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Dropdown) -->
+        <div id="mobileMenu" class="hidden lg:hidden bg-slate-800 text-white border-t border-slate-700 shadow-xl absolute w-full left-0 max-h-[80vh] overflow-y-auto">
+            <nav class="flex flex-col px-4 py-2 space-y-1">
+                <a href="#section-strategy" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-white bg-slate-900 border-l-4 border-blue-500">1. Chiến Lược Tổng Quan</a>
+                <a href="#section-logic-flow" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">2. Logic Flow Nâng Cao</a>
+                <a href="#section-intro" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">3. Các Câu Mở Bài</a>
+                <a href="#section-body" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">4. Các Câu Thân Bài</a>
+                <a href="#section-outro" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">5. Các Câu Kết Bài</a>
+                <a href="#section-template" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">6. Bộ Khung Vạn Năng</a>
+                <a href="#section-vocab-press" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">7. Từ Vựng & Văn Phong Báo Chí</a>
+                <a href="#section-macro" class="mobile-nav-link block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 border-l-4 border-transparent">8. 4 Chủ Điểm Vĩ Mô</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto w-full">
+        <div class="max-w-6xl mx-auto p-6 md:p-10 space-y-20 pb-32">
+            
+            <!-- Hero Title -->
+            <div class="text-center space-y-4 pt-4">
+                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Tài liệu lưu hành nội bộ</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight cn-title">跨时间对比图表分析攻略</h1>
+                <p class="text-slate-500 text-lg md:text-xl">Cẩm Nang Phân Tích Biểu Đồ HSK 7-9 (Mở rộng Line Chart & Logic Flow)</p>
+            </div>
+
+            <!-- Section 1: Chiến Lược -->
+            <section id="section-strategy">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-blue-600 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">1. Chiến Lược Tổng Quan (3 Đoạn - 4 Bước)</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                        <div class="text-blue-600 text-4xl mb-4"><i class="fas fa-play-circle"></i></div>
+                        <h3 class="font-bold text-lg mb-2 text-slate-800">Mở Bài (Overview)</h3>
+                        <p class="text-sm text-slate-500 mb-2">1 Câu (10%)</p>
+                        <p class="text-slate-600">Đi thẳng vào vấn đề, giới thiệu đối tượng, loại biểu đồ và mốc thời gian so sánh.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-t-blue-500 transform md:-translate-y-2 transition-transform">
+                        <div class="text-blue-500 text-4xl mb-4"><i class="fas fa-balance-scale"></i></div>
+                        <h3 class="font-bold text-lg mb-2 text-slate-800">Thân Bài (Phân Tích)</h3>
+                        <p class="text-sm text-slate-500 mb-2">2 Ý đối lập / So sánh tuyến tính (60%)</p>
+                        <ul class="text-slate-600 text-sm space-y-3 mt-3">
+                            <li class="flex items-start"><i class="fas fa-arrow-down text-red-500 mt-1 mr-2"></i><span><strong>Ý 1:</strong> Trình bày nhóm sụt giảm / chạm đáy.</span></li>
+                            <li class="flex items-start"><i class="fas fa-arrow-up text-green-500 mt-1 mr-2"></i><span><strong>Ý 2:</strong> Trình bày nhóm duy trì thế thượng phong / tăng trưởng bùng nổ, chỉ ra các "điểm giao cắt".</span></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                        <div class="text-blue-600 text-4xl mb-4"><i class="fas fa-flag-checkered"></i></div>
+                        <h3 class="font-bold text-lg mb-2 text-slate-800">Kết Bài (Conclusion)</h3>
+                        <p class="text-sm text-slate-500 mb-2">1-2 Câu (30%)</p>
+                        <p class="text-slate-600">Nâng tầm quan điểm (Insight). Không liệt kê lại số liệu mà phải vạch trần "biến đổi hệ thống" hoặc xu hướng cốt lõi đằng sau.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Logic Flow Của Line Chart -->
+            <section id="section-logic-flow">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-cyan-600 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">2. Logic Flow Nâng Cao (Đặc trị Line Chart)</h2>
+                </div>
+                <p class="text-slate-600 mb-6 text-lg">Đây là thuật đi từ "Hiện Tượng" đến "Bản Chất", giúp bài phân tích của bạn đạt tầm chuyên gia thay vì chỉ là liệt kê số liệu.</p>
+
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <!-- Step 1 -->
+                    <div class="p-6 md:p-8 border-b border-slate-100 hover:bg-slate-50 transition-colors relative group">
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 font-bold flex items-center justify-center mb-4 md:mb-0 md:mr-6 flex-shrink-0 text-lg">1</div>
+                            <div class="flex-1 w-full relative">
+                                <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-cyan-500" onclick="copyText('logic-1', this)"><i class="far fa-copy"></i></button>
+                                <h3 class="font-bold text-slate-800 text-lg mb-2">Định vị xu hướng cốt lõi (Bỏ qua nhiễu loạn)</h3>
+                                <p class="text-slate-600 mb-4">Thừa nhận có sự biến động ngẫu nhiên nhưng khẳng định sự tăng trưởng mang tính xu hướng (趋势性增长).</p>
+                                <div id="logic-1" class="bg-slate-100 p-5 rounded-lg border-l-4 border-cyan-300">
+                                    <span class="pinyin text-slate-500/80">Zhè biǎomíng, jǐnguǎn niándù jiān cúnzài jùliè de suíjī bōdòng, dàn cóng chángyuǎn lái kàn, gāi zhǐbiāo jùyǒu míngxiǎn de qūshìxìng zēngzhǎng.</span>
+                                    <div class="cn-text cn-title text-slate-800 mt-1">这表明，尽管年度间存在剧烈的<span class="highlight-purple">随机波动</span>，但从长远来看，该指标具有明显的<span class="highlight-purple">趋势性增长</span>。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="p-6 md:p-8 border-b border-slate-100 hover:bg-slate-50 transition-colors relative group">
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 font-bold flex items-center justify-center mb-4 md:mb-0 md:mr-6 flex-shrink-0 text-lg">2</div>
+                            <div class="flex-1 w-full relative">
+                                <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-cyan-500" onclick="copyText('logic-2', this)"><i class="far fa-copy"></i></button>
+                                <h3 class="font-bold text-slate-800 text-lg mb-2">Phân tích dựa trên đường tham chiếu / Điểm giao cắt</h3>
+                                <p class="text-slate-600 mb-4">Chỉ ra mốc thời gian quan trọng khi một đường biểu diễn "cắt" đường trung bình (常年值) hoặc cắt một đường khác.</p>
+                                <div id="logic-2" class="bg-slate-100 p-5 rounded-lg border-l-4 border-cyan-300">
+                                    <span class="pinyin text-slate-500/80">Suízhe shíjiān tuīyí, qūshì xiàn zài 90 niándài hòuqī kuàyuè le chángnián zhí héngzhóu, bìng chíxù pānshēng.</span>
+                                    <div class="cn-text cn-title text-slate-800 mt-1">随着时间推移，趋势线在90年代后期<span class="highlight-blue">跨越了常年值横轴</span>，并持续攀升。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="p-6 md:p-8 hover:bg-slate-50 transition-colors relative group">
+                        <div class="flex flex-col md:flex-row items-start">
+                            <div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 font-bold flex items-center justify-center mb-4 md:mb-0 md:mr-6 flex-shrink-0 text-lg">3</div>
+                            <div class="flex-1 w-full relative">
+                                <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-cyan-500" onclick="copyText('logic-3', this)"><i class="far fa-copy"></i></button>
+                                <h3 class="font-bold text-slate-800 text-lg mb-2">Nâng tầm quan điểm (Insight - Bản chất vấn đề)</h3>
+                                <p class="text-slate-600 mb-4">Kết luận rằng hiện tượng này không phải là do may rủi (sự bất thường ngẫu nhiên) mà là "biến đổi mang tính hệ thống".</p>
+                                <div id="logic-3" class="bg-slate-100 p-5 rounded-lg border-l-4 border-cyan-500">
+                                    <span class="pinyin text-slate-500/80">Zhè zhǒng qūshì shuōmíng zhè yǐ bù zài shì ǒurán de yìcháng, ér shì shòu... qūdòng de chángqī xìtǒngxìng biànhuà.</span>
+                                    <div class="cn-text cn-title text-slate-800 mt-1">这种趋势说明这已不再是偶然的异常，而是受...驱动的长期<span class="highlight-purple">系统性变化</span>。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Các Câu Mở Bài -->
+            <section id="section-intro">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-emerald-500 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">3. Các Câu Mở Bài (引言)</h2>
+                </div>
+                <p class="text-slate-600 mb-6">Mở bài cần ngắn gọn, đi thẳng vào loại biểu đồ và chủ đề. Dưới đây là các cấu trúc an toàn và chuyên nghiệp nhất.</p>
+
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="p-6 space-y-6">
+                        <!-- Item 1 -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-emerald-500 bg-slate-50 p-2 rounded-full" onclick="copyText('intro-1', this)"><i class="far fa-copy"></i></button>
+                            <div id="intro-1" class="pr-10">
+                                <span class="pinyin text-slate-500">Tígōng de túbiǎo zhíguān de zhǎnshì le... de xiǎnzhù biànhuà yǔ fēnbù qíngkuàng.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">提供的图表直观地展示了...的显著变化与分布情况。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Biểu đồ được cung cấp đã thể hiện trực quan sự thay đổi rõ rệt và tình hình phân bổ của... (Phù hợp biểu đồ Tròn/Cột)</div>
+                        </div>
+                        <!-- Item 2 -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-emerald-500 bg-slate-50 p-2 rounded-full" onclick="copyText('intro-2', this)"><i class="far fa-copy"></i></button>
+                            <div id="intro-2" class="pr-10">
+                                <span class="pinyin text-slate-500">Gāi shùjù túbiǎo quánjǐng shì de gōulè chū le... jiān de dòngtài yǎnbiàn guǐjì.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">该数据图表全景式地勾勒出了...间的动态演变轨迹。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Biểu đồ dữ liệu này đã phác họa toàn cảnh quỹ đạo diễn biến động của... (Phù hợp biểu đồ Đường/So sánh nhiều năm)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Các Câu Thân Bài -->
+            <section id="section-body">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-amber-500 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">4. Các Câu Thân Bài (主体分析)</h2>
+                </div>
+                <p class="text-slate-600 mb-6">Sử dụng các cấu trúc này để miêu tả sự tương phản, gộp nhóm đối tượng (So sánh đa tuyến) và chốt lại nguyên nhân ở Thân bài.</p>
+
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="p-6 space-y-6">
+                        <!-- Item 1: Đa tuyến -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-amber-500 bg-slate-50 p-2 rounded-full" onclick="copyText('body-1', this)"><i class="far fa-copy"></i></button>
+                            <div id="body-1" class="pr-10">
+                                <span class="pinyin text-slate-500">Zǒngtǐ ér yán, A wèijū zhī shǒu, B chéngxiàn chū wěnbù shàngshēng de shìtóu, ér C zé jīnglì le jiérán bùtóng de qūshì...</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">总体而言，A 位居之首，B 呈现出稳步上升的势头，而 C 则经历了截然不同的趋势...</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Nhìn chung, A xếp vị trí dẫn đầu, B thể hiện đà tăng trưởng ổn định, trong khi C trải qua một xu hướng hoàn toàn trái ngược...</div>
+                        </div>
+                        <!-- Item 2: Chuyển ý tương phản -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-amber-500 bg-slate-50 p-2 rounded-full" onclick="copyText('body-2', this)"><i class="far fa-copy"></i></button>
+                            <div id="body-2" class="pr-10">
+                                <span class="pinyin text-slate-500">Yǔ zhī xíngchéng xiānmíng duìbǐ de shì, [Nhóm B] jí qítā xiāngguān língyù jūn chéngxiàn chū bàofā shì zēngzhǎng.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">与之形成鲜明对比的是，[Nhóm B] 及其他相关领域均呈现出爆发式增长。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Trái ngược hoàn toàn với điều đó là, [Nhóm B] và các lĩnh vực liên quan khác đều thể hiện sự tăng trưởng bùng nổ. (Từ nối chuyển ý cực mạnh)</div>
+                        </div>
+                        <!-- Item 3: Giải thích nguyên nhân thân bài -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-amber-500 bg-slate-50 p-2 rounded-full" onclick="copyText('body-3', this)"><i class="far fa-copy"></i></button>
+                            <div id="body-3" class="pr-10">
+                                <span class="pinyin text-slate-500">Jiū qí yuányīn, zhèxiē shùjù de bōdòng bìng fēi ǒurán, ér shì zhíguān de zhéshè chū...</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">究其原因，这些数据的波动并非偶然，而是直观地折射出...</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Truy cứu nguyên nhân, sự biến động của những dữ liệu này không phải là ngẫu nhiên, mà phản ánh một cách trực quan... (Dùng để đưa ra suy luận sau khi nêu số liệu).</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5: Các Câu Kết Bài -->
+            <section id="section-outro">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-red-500 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">5. Các Câu Kết Bài (总结)</h2>
+                </div>
+                <p class="text-slate-600 mb-6">Kết bài tuyệt đối không nhắc lại số liệu. Hãy dùng các mẫu câu "nâng tầm quan điểm" dưới đây để đoạt điểm xuất sắc.</p>
+
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="p-6 space-y-6">
+                        <!-- Item 1 -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-red-500 bg-slate-50 p-2 rounded-full" onclick="copyText('outro-1', this)"><i class="far fa-copy"></i></button>
+                            <div id="outro-1" class="pr-10">
+                                <span class="pinyin text-slate-500">Zōng shàng suǒ shù, zhè yī jiégòuxìng yǎnbiàn biāozhì zhe... xiàng duōyuánhuà/gāozhìliàng zhuǎnxíng de shídài bìrán.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">综上所述，这一结构性演变标志着...向多元化/高质量转型的时代必然。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Tóm lại, sự biến đổi cơ cấu này đánh dấu tính tất yếu của thời đại khi... chuyển mình sang sự đa dạng hóa/chất lượng cao.</div>
+                        </div>
+                        <!-- Item 2 -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-red-500 bg-slate-50 p-2 rounded-full" onclick="copyText('outro-2', this)"><i class="far fa-copy"></i></button>
+                            <div id="outro-2" class="pr-10">
+                                <span class="pinyin text-slate-500">Wúyōngzhíyí, zhè yī jiégòuxìng yǎnbiàn bùjǐn shì shùjù de jiǎndān gēngdié, gèng biāozhì zhe... de shēnkè zhuǎnxíng.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">毋庸置疑，这一结构性演变不仅仅是数据的简单更迭，更标志着...的深刻转型。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Không còn nghi ngờ gì nữa, sự biến đổi mang tính cơ cấu này không chỉ đơn thuần là sự thay đổi của con số, mà còn đánh dấu sự chuyển mình sâu sắc của...</div>
+                        </div>
+                        <!-- Item 3 -->
+                        <div class="relative group border-b border-slate-100 pb-5 last:border-0 last:pb-0">
+                            <button class="copy-btn absolute right-0 top-0 text-slate-400 hover:text-red-500 bg-slate-50 p-2 rounded-full" onclick="copyText('outro-3', this)"><i class="far fa-copy"></i></button>
+                            <div id="outro-3" class="pr-10">
+                                <span class="pinyin text-slate-500">Gāi túbiǎo zhéshè chū de qūshì jì shì shèhuì jìnbù de xiězhào, yě yùshì zhe wèilái de jīyù yǔ tiǎozhàn.</span>
+                                <div class="cn-text cn-title text-slate-800 mt-1">该图表折射出的趋势既是社会进步的写照，也预示着未来的机遇与挑战。</div>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-2 bg-slate-50 p-2 rounded">Xu hướng biểu đồ phản ánh vừa là bức tranh về tiến bộ xã hội, vừa dự báo những cơ hội và thách thức trong tương lai.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: Template -->
+            <section id="section-template">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-indigo-600 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">6. Bộ Khung Điền Từ Vạn Năng (万能模板)</h2>
+                </div>
+                
+                <div class="bg-slate-900 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl">
+                    <button class="copy-btn absolute top-6 right-6 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm flex items-center shadow-lg z-10" onclick="copyTemplate('template-text', this)">
+                        <i class="far fa-copy mr-2"></i> Copy Khung
+                    </button>
+                    
+                    <div id="template-text" class="leading-relaxed font-light mt-2">
+                        <div class="mb-6 group-hover:bg-slate-800/50 p-3 rounded-lg transition-colors">
+                            <span class="pinyin text-slate-400">Tígōng de túbiǎo zhíguān de zhǎnshì le [Chủ đề] zài [Năm A] yǔ [Năm B] zhījiān de lìshǐxìng biànqiān.</span>
+                            <span class="cn-text block text-slate-200 text-xl mt-1">提供的图表直观地展示了 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Chủ đề biểu đồ]</span> 在 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Năm A]</span> 与 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Năm B]</span> 之间的历史性变迁。</span>
+                        </div>
+                        <div class="mb-6 pl-5 border-l-4 border-slate-700 group-hover:bg-slate-800/50 p-3 rounded-r-lg transition-colors">
+                            <span class="pinyin text-slate-400">Shùjù xiǎnshì, [Năm A] shí, [Nhóm giảm] zhànjù le juéduì de zhǔdǎo dìwèi. Rán'ér, dào le [Năm B], zhè yī bǐlì dàfúdù wěisuō zhì [Y]%, zhè xiǎnshì chū [Lý do].</span>
+                            <span class="cn-text block mb-6 text-slate-200 text-xl mt-1">数据显示，<span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Năm A]</span> 时，<span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Đối tượng nhóm giảm]</span> 占据了绝对的主导地位。然而，到了 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Năm B]</span>，这一比例大幅度萎缩至 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Y]%</span>，这显示出 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Phân tích 1 lý do ngắn gọn]</span>。</span>
+                            
+                            <span class="pinyin text-slate-400">Yǔ zhī xíngchéng xiānmíng duìbǐ de shì, [Nhóm tăng] chéngxiàn chū wěnbù shàngshēng de tàishì. Tèbié shì [Đối tượng nổi bật], cóng [M] jīzēng zhì [N], zhíguān fǎnyìng le [Lý do].</span>
+                            <span class="cn-text block text-slate-200 text-xl mt-1">与之形成鲜明对比的是，<span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Đối tượng nhóm tăng]</span> 呈现出稳步上升的态势。特别是 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Đối tượng nổi bật nhất]</span>，从 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[M]</span> 激增至 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[N]</span>，直接反映了 <span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Phân tích ý nghĩa sự tăng trưởng]</span>。</span>
+                        </div>
+                        <div class="group-hover:bg-slate-800/50 p-3 rounded-lg transition-colors">
+                            <span class="pinyin text-slate-400">Zōng shàng suǒ shù, zhè zhǒng jiégòuxìng de yǎnbiàn biāozhì zhe gāi língyù yǐ cóng dānyī de "[Đặc điểm cũ]" xiàng "[Đặc điểm mới]" guòdù, shēnkè tǐxiàn le shèhuì jīngjì de bùduàn fāzhǎn yǔ jìnbù.</span>
+                            <span class="cn-text block text-slate-200 text-xl mt-1">综上所述，这种结构性的演变标志着该领域已从单一的“<span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Đặc điểm cũ]</span>”向“<span class="text-yellow-400 font-bold border-b border-yellow-400 border-dashed pb-1">[Đặc điểm mới]</span>”过渡，深刻体现了社会经济的不断发展与进步。</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7: Từ Vựng & Báo Chí (Merged) -->
+            <section id="section-vocab-press">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-rose-500 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">7. Ngân Hàng Từ Vựng & Văn Phong Báo Chí</h2>
+                </div>
+                <p class="text-slate-600 mb-6 text-lg">Hệ thống từ vựng đặc trị và cách hành văn mô phỏng báo chí chính thống (Tân Hoa Xã, Nhân Dân Nhật Báo).</p>
+                
+                <!-- Part A: Vocab -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8 mb-10">
+                    <!-- Card 1: Pie Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h4 class="font-bold text-lg text-slate-800 mb-5 border-b pb-3 flex items-center"><i class="fas fa-chart-pie text-amber-500 mr-3 text-xl"></i>Tỉ Trọng & Phân Bổ</h4>
+                        <ul class="space-y-5">
+                            <li class="flex flex-col">
+                                <span class="pinyin text-amber-600/80">zhànjù zhǔdǎo dìwèi</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-slate-100 px-3 py-1 rounded text-slate-800 shadow-sm border border-slate-200">占据主导地位</span> <span class="text-sm text-slate-600 ml-3">- Chiếm vị thế chủ đạo</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-amber-600/80">zhànjù bànbì jiāngshān</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-slate-100 px-3 py-1 rounded text-slate-800 shadow-sm border border-slate-200">占据半壁江山</span> <span class="text-sm text-slate-600 ml-3">- Chiếm 1 nửa/tỷ trọng lớn</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-amber-600/80">wēihū qíwēi</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-slate-100 px-3 py-1 rounded text-slate-800 shadow-sm border border-slate-200">微乎其微</span> <span class="text-sm text-slate-600 ml-3">- Vô cùng nhỏ bé</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-amber-600/80">wèijū shǒuwèi</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-slate-100 px-3 py-1 rounded text-slate-800 shadow-sm border border-slate-200">位居首位</span> <span class="text-sm text-slate-600 ml-3">- Xếp vị trí thứ nhất</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Card 2: Line Chart Status & Intersections -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h4 class="font-bold text-lg text-slate-800 mb-5 border-b pb-3 flex items-center"><i class="fas fa-project-diagram text-indigo-500 mr-3 text-xl"></i>Trạng Thái & Điểm Cắt</h4>
+                        <ul class="space-y-5">
+                            <li class="flex flex-col">
+                                <span class="pinyin text-indigo-600/80">dádào yī gè fēngzhí</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded shadow-sm">达到一个峰值</span> <span class="text-sm text-slate-600 ml-3">- Đạt đến một đỉnh điểm</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-indigo-600/80">bǎochí zài píngtáiqī</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded shadow-sm">保持在平台期</span> <span class="text-sm text-slate-600 ml-3">- Chững lại ở bình ổn</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-indigo-600/80">yǔ... chípíng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded shadow-sm">与...持平</span> <span class="text-sm text-slate-600 ml-3">- Ngang bằng với... (Cắt)</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-indigo-600/80">huǎnmàn qǐbù hòu jíjù shàngshēng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded shadow-sm">缓慢起步后急剧上升</span> <span class="text-sm text-slate-600 ml-3">- Tăng vọt sau khi chậm</span></div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3: Line Chart Growth/Drop -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h4 class="font-bold text-lg text-slate-800 mb-5 border-b pb-3 flex items-center"><i class="fas fa-arrow-trend-up text-green-500 mr-3 text-xl"></i>Xu Hướng Tăng Giảm</h4>
+                        <ul class="space-y-5">
+                            <li class="flex flex-col">
+                                <span class="pinyin text-green-600/80">chéng bàofā shì zēngzhǎng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded shadow-sm">呈爆发式增长</span> <span class="text-sm text-slate-600 ml-3">- Tăng trưởng bùng nổ</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-green-600/80">wěnbù pānshēng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded shadow-sm">稳步攀升</span> <span class="text-sm text-slate-600 ml-3">- Leo dốc ổn định</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-red-600/80">dà fúdù wěisuō</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1 rounded shadow-sm">大幅度萎缩</span> <span class="text-sm text-slate-600 ml-3">- Thu hẹp diện rộng</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-red-600/80">jīnglì jiérán bùtóng de qūshì</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-red-50 text-red-700 border border-red-200 px-3 py-1 rounded shadow-sm">经历截然不同的趋势</span> <span class="text-sm text-slate-600 ml-3">- Trải qua xu hướng đối lập</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Card 4: Insight / Essence Vocabulary -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h4 class="font-bold text-lg text-slate-800 mb-5 border-b pb-3 flex items-center"><i class="fas fa-brain text-purple-500 mr-3 text-xl"></i>Từ Vựng Phân Tích Bản Chất</h4>
+                        <ul class="space-y-5">
+                            <li class="flex flex-col">
+                                <span class="pinyin text-purple-600/80">suíjī bōdòng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded shadow-sm">随机波动</span> <span class="text-sm text-slate-600 ml-3">- Dao động ngẫu nhiên</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-purple-600/80">qūshìxìng zēngzhǎng</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded shadow-sm">趋势性增长</span> <span class="text-sm text-slate-600 ml-3">- Tăng trưởng theo xu hướng</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-purple-600/80">xìtǒngxìng biànhuà</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded shadow-sm">系统性变化</span> <span class="text-sm text-slate-600 ml-3">- Biến đổi hệ thống</span></div>
+                            </li>
+                            <li class="flex flex-col">
+                                <span class="pinyin text-purple-600/80">yǒuwàng wèi jū zhī shǒu</span>
+                                <div class="flex items-center mt-1"><span class="cn-text font-bold bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded shadow-sm">有望位居之首</span> <span class="text-sm text-slate-600 ml-3">- Triển vọng vươn lên dẫn đầu</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Part B: Press Quotes -->
+                <div class="relative bg-white p-6 md:p-8 border-l-4 border-rose-400 rounded-r-xl shadow-md">
+                    <i class="fas fa-quote-right absolute top-6 right-6 text-slate-100 text-5xl"></i>
+                    <h4 class="font-bold text-lg text-rose-500 mb-4 border-b pb-2 inline-block">Mẫu Câu Văn Phong Báo Chí</h4>
+                    <span class="pinyin text-rose-500/80 mb-2 block mt-2">Jìn nián lái, wǒguó [Lĩnh vực] shìchǎng chéng bàofā shì zēngzhǎng, qí guīmó zài quánqiú shìchǎng zhōng zhànjù bànbì jiāngshān.</span>
+                    <div class="cn-text text-slate-800 text-xl mb-4 pr-12">
+                        近年来，我国 <span class="highlight-blue">[领域]</span> 市场 <span class="highlight-red">呈爆发式增长</span>，其规模在全球市场中 <span class="highlight-red">占据半壁江山</span>。
+                    </div>
+                    <p class="text-slate-600 border-t pt-4">Trong những năm gần đây, thị trường [lĩnh vực] của nước ta <span class="font-semibold">tăng trưởng mang tính bùng nổ</span>, quy mô <span class="font-semibold">chiếm tới một nửa (vị thế lớn)</span> trên thị trường toàn cầu.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Chủ Điểm Vĩ Mô (WAS 6/7) -->
+            <section id="section-macro">
+                <div class="flex items-center mb-6 border-b pb-3">
+                    <div class="bg-violet-600 w-3 h-8 rounded mr-3"></div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">8. Phân Tích Bản Chất: 4 Chủ Điểm Vĩ Mô</h2>
+                </div>
+                <p class="text-slate-600 mb-8 text-lg">Lồng ghép các từ khóa thời đại này vào phần giải thích nguyên nhân (Cuối đoạn Thân Bài) để chứng minh kiến thức xã hội sâu rộng.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Topic 1 -->
+                    <div class="group bg-slate-900 rounded-2xl p-6 md:p-8 hover:bg-violet-900 transition-colors border border-slate-800 shadow-lg">
+                        <div class="flex items-center mb-5">
+                            <div class="w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mr-4 shadow-inner text-2xl"><i class="fas fa-microchip"></i></div>
+                            <div class="flex flex-col">
+                                <span class="pinyin text-slate-400 mb-0">shùzìhuà zhuǎnxíng</span>
+                                <h3 class="cn-text font-bold text-white text-xl">数字化转型 (Chuyển đổi số)</h3>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm mb-4">Áp dụng: Thương mại điện tử, AI, Giáo dục Online.</p>
+                        <div class="bg-black/30 p-4 rounded-lg text-slate-200 border-l-4 border-blue-400">
+                            <span class="pinyin text-slate-400 block mb-2 text-sm">"Réngōng zhìnéng zhèng yǐ qiánsuǒwèiyǒu de sùdù fùnéng chuántǒng chǎnyè..."</span>
+                            <span class="cn-text font-light text-lg">"人工智能正以前所未有的速度<span class="text-blue-300 font-bold">赋能</span>传统产业..."</span><br>
+                            <span class="text-sm text-slate-400 mt-3 block border-t border-slate-700/50 pt-2">(AI đang trao quyền/nâng tầm cho các ngành truyền thống...)</span>
+                        </div>
+                    </div>
+                    <!-- Topic 2 -->
+                    <div class="group bg-slate-900 rounded-2xl p-6 md:p-8 hover:bg-emerald-900 transition-colors border border-slate-800 shadow-lg">
+                        <div class="flex items-center mb-5">
+                            <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mr-4 shadow-inner text-2xl"><i class="fas fa-leaf"></i></div>
+                            <div class="flex flex-col">
+                                <span class="pinyin text-slate-400 mb-0">shuāngtàn mùbiāo</span>
+                                <h3 class="cn-text font-bold text-white text-xl">双碳目标 (Carbon kép)</h3>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm mb-4">Áp dụng: Xe điện, Năng lượng tái tạo, Bảo vệ môi trường.</p>
+                        <div class="bg-black/30 p-4 rounded-lg text-slate-200 border-l-4 border-emerald-400">
+                            <span class="pinyin text-slate-400 block mb-2 text-sm">"Guànchè 'jiénéng jiǎnpái' zhèngcè jí màixiàng dītàn shèhuì..."</span>
+                            <span class="cn-text font-light text-lg">"贯彻“节能减排”政策及迈向<span class="text-emerald-300 font-bold">低碳社会</span>..."</span><br>
+                            <span class="text-sm text-slate-400 mt-3 block border-t border-slate-700/50 pt-2">(Quán triệt tiết kiệm năng lượng tiến tới xã hội carbon thấp...)</span>
+                        </div>
+                    </div>
+                    <!-- Topic 3 -->
+                    <div class="group bg-slate-900 rounded-2xl p-6 md:p-8 hover:bg-orange-900 transition-colors border border-slate-800 shadow-lg">
+                        <div class="flex items-center mb-5">
+                            <div class="w-14 h-14 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center mr-4 shadow-inner text-2xl"><i class="fas fa-user-clock"></i></div>
+                            <div class="flex flex-col">
+                                <span class="pinyin text-slate-400 mb-0">lǎolínghuà yǔ yínfā jīngjì</span>
+                                <h3 class="cn-text font-bold text-white text-xl">老龄化与银发经济</h3>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm mb-4">Áp dụng: Dân số già hóa, Y tế, Dịch vụ chăm sóc người già.</p>
+                        <div class="bg-black/30 p-4 rounded-lg text-slate-200 border-l-4 border-orange-400">
+                            <span class="pinyin text-slate-400 block mb-2 text-sm">"Yínfā jīngjì jiāng chéngwéi wèilái shìchǎng de héxīn qūdònglì..."</span>
+                            <span class="cn-text font-light text-lg">"<span class="text-orange-300 font-bold">银发经济</span>将成为未来市场的核心驱动力..."</span><br>
+                            <span class="text-sm text-slate-400 mt-3 block border-t border-slate-700/50 pt-2">(Kinh tế tóc bạc sẽ là động lực cốt lõi của thị trường tương lai...)</span>
+                        </div>
+                    </div>
+                    <!-- Topic 4 -->
+                    <div class="group bg-slate-900 rounded-2xl p-6 md:p-8 hover:bg-rose-900 transition-colors border border-slate-800 shadow-lg">
+                        <div class="flex items-center mb-5">
+                            <div class="w-14 h-14 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mr-4 shadow-inner text-2xl"><i class="fas fa-gem"></i></div>
+                            <div class="flex flex-col">
+                                <span class="pinyin text-slate-400 mb-0">xiāofèi shēngjí yǔ wénhuà zìxìn</span>
+                                <h3 class="cn-text font-bold text-white text-xl">消费升级与文化自信</h3>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 text-sm mb-4">Áp dụng: Chi tiêu gia đình, Hàng nội địa (Guochao), Du lịch.</p>
+                        <div class="bg-black/30 p-4 rounded-lg text-slate-200 border-l-4 border-rose-400">
+                            <span class="pinyin text-slate-400 block mb-2 text-sm">"Zhāngxiǎn le xīn yīdài xiāofèizhě rìyì zēngqiáng de wénhuà zìxìn..."</span>
+                            <span class="cn-text font-light text-lg">"彰显了新一代消费者日益增强的<span class="text-rose-300 font-bold">文化自信</span>..."</span><br>
+                            <span class="text-sm text-slate-400 mt-3 block border-t border-slate-700/50 pt-2">(Làm nổi bật niềm tự hào văn hóa ngày càng lớn mạnh...)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Mobile Menu Toggle
+        const btn = document.getElementById('mobileMenuBtn');
+        const menu = document.getElementById('mobileMenu');
+        
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when a link is clicked
+        const mobileLinks = menu.querySelectorAll('.mobile-nav-link');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+
+        // Highlight active section in Top Nav based on scrolling
+        const sections = document.querySelectorAll('section');
+        const desktopNavLinks = document.querySelectorAll('nav .nav-link');
+        const mobileNavLinks = document.querySelectorAll('#mobileMenu .mobile-nav-link');
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-80px 0px -40% 0px', // Adjust depending on header height
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    
+                    // Update Desktop Nav
+                    desktopNavLinks.forEach(link => {
+                        link.classList.remove('bg-slate-800', 'text-white', 'border-blue-500');
+                        link.classList.add('text-slate-300', 'border-transparent');
+                    });
+                    const activeDesktop = document.querySelector(`header nav a[href="#${id}"]`);
+                    if(activeDesktop) {
+                        activeDesktop.classList.remove('text-slate-300', 'border-transparent');
+                        activeDesktop.classList.add('bg-slate-800', 'text-white', 'border-blue-500');
+                        // Optional: scroll nav horizontally to active link
+                        activeDesktop.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+
+                    // Update Mobile Nav
+                    mobileNavLinks.forEach(link => {
+                        link.classList.remove('text-white', 'bg-slate-900', 'border-blue-500');
+                        link.classList.add('text-slate-300', 'border-transparent');
+                    });
+                    const activeMobile = document.querySelector(`#mobileMenu a[href="#${id}"]`);
+                    if(activeMobile) {
+                        activeMobile.classList.remove('text-slate-300', 'border-transparent');
+                        activeMobile.classList.add('text-white', 'bg-slate-900', 'border-blue-500');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(sec => observer.observe(sec));
+
+        // Copy functionality for full template
+        function copyTemplate(elementId, btnElement) {
+            const tempElement = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(tempElement).then(() => {
+                const originalHTML = btnElement.innerHTML;
+                btnElement.classList.add('copy-success');
+                btnElement.innerHTML = '<i class="fas fa-check mr-2"></i> Đã Copy';
+                setTimeout(() => {
+                    btnElement.classList.remove('copy-success');
+                    btnElement.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        // Copy functionality for single text blocks
+        function copyText(elementId, btnElement) {
+            const cnTextElement = document.querySelector(`#${elementId} .cn-title`);
+            if(cnTextElement) {
+                const tempElement = cnTextElement.innerText;
+                try {
+                    navigator.clipboard.writeText(tempElement).then(() => showSuccessIcon(btnElement));
+                } catch (err) {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = tempElement;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    showSuccessIcon(btnElement);
+                }
+            }
+        }
+
+        function showSuccessIcon(btnElement) {
+            const originalIcon = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-lg"></i>';
+            setTimeout(() => {
+                btnElement.innerHTML = originalIcon;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
